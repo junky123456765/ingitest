@@ -1,0 +1,314 @@
+{% extends "base.html" %}
+
+{% block title %}Test Results - {{ test_result.TestName }} - IngiTest_v1{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-chart-line"></i> Test Results: {{ test_result.TestName }}</h2>
+    {% if is_admin_view %}
+    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Back to Dashboard
+    </a>
+    {% else %}
+    <a href="{{ url_for('user_dashboard') }}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Back to Dashboard
+    </a>
+    {% endif %}
+</div>
+
+<!-- Test Summary -->
+<div class="card mb-4">
+    <div class="card-header bg-secondary text-white">
+        <h4><i class="fas fa-chart-bar"></i> Test Summary</h4>
+    </div>
+    <div class="card-body">
+        {% if is_admin_view and test_result.UserName %}
+        <!-- User Details (Admin View Only) -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card border-info">
+                    <div class="card-header bg-info text-white">
+                        <h5><i class="fas fa-user"></i> User Details</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <strong><i class="fas fa-user"></i> Username:</strong><br>
+                                <span class="text-primary">{{ test_result.UserName }}</span>
+                            </div>
+                            <div class="col-md-3">
+                                <strong><i class="fas fa-hashtag"></i> User ID:</strong><br>
+                                <span class="badge bg-secondary">{{ test_result.UserId }}</span>
+                            </div>
+                            <div class="col-md-3">
+                                <strong><i class="fas fa-calendar-alt"></i> Date of Birth:</strong><br>
+                                <span class="text-muted">{{ test_result.DOB or 'Not available' }}</span>
+                            </div>
+                            <div class="col-md-3">
+                                <strong><i class="fas fa-id-badge"></i> Employee ID:</strong><br>
+                                <code>{{ test_result.EmployeeID or 'Not available' }}</code>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Test Statistics -->
+        <div class="row">
+            <div class="col-md-3 text-center">
+                <div class="card {% if test_result.PassFail == 'Pass' %}bg-success{% else %}bg-danger{% endif %} text-white">
+                    <div class="card-body">
+                        <h3>{{ test_result.PassFail }}</h3>
+                        <p class="mb-0"><i class="fas fa-trophy"></i> Result</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 text-center">
+                <div class="card bg-primary text-white">
+                    <div class="card-body">
+                        <h3>{{ "%.2f"|format(test_result.Score or 0) }}%</h3>
+                        <p class="mb-0"><i class="fas fa-percentage"></i> Score</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 text-center">
+                <div class="card bg-info text-white">
+                    <div class="card-body">
+                        <h3>{{ correct_answers }}</h3>
+                        <p class="mb-0"><i class="fas fa-check"></i> Correct</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 text-center">
+                <div class="card bg-secondary text-white">
+                    <div class="card-body">
+                        <h3>{{ total_questions }}</h3>
+                        <p class="mb-0"><i class="fas fa-list"></i> Total Questions</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col-12">
+                <p class="mb-1"><strong>Test Date:</strong> {{ test_result.TestDate }}</p>
+                <p class="mb-1"><strong>Questions Answered:</strong> {{ answered_questions }} / {{ total_questions }}</p>
+                <p class="mb-1"><strong>Unanswered Questions:</strong> {{ unanswered_questions }} / {{ total_questions }}</p>
+                {% if test_result.TimeConsumed %}
+                <p class="mb-1"><strong>Time Consumed:</strong> {{ "%.1f"|format(test_result.TimeConsumed) }} minutes</p>
+                {% endif %}
+                <p class="mb-0"><strong>Passing Score:</strong> {{ passing_grade }}%</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Question-by-Question Review -->
+<div class="card">
+    <div class="card-header bg-primary text-white">
+        <h4><i class="fas fa-list-ol"></i> Question-by-Question Review</h4>
+    </div>
+    <div class="card-body">
+        {% if questions and questions|length > 0 %}
+        {% for question in questions %}
+        <div class="card mb-3 {% if question.SelectedAnswer and question.SelectedAnswer == question.CorrectAnswer %}border-success{% elif question.SelectedAnswer %}border-danger{% else %}border-warning{% endif %}">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">
+                    <i class="fas fa-question-circle"></i> Question {{ loop.index }}
+                </h6>
+                {% if question.SelectedAnswer and question.SelectedAnswer == question.CorrectAnswer %}
+                    <span class="badge bg-success">
+                        <i class="fas fa-check"></i> Correct
+                    </span>
+                {% elif question.SelectedAnswer %}
+                    <span class="badge bg-danger">
+                        <i class="fas fa-times"></i> Incorrect
+                    </span>
+                {% else %}
+                    <span class="badge bg-warning">
+                        <i class="fas fa-minus"></i> Not Answered
+                    </span>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                <p class="fw-bold mb-3">{{ question.Question|safe }}</p>
+                
+                {% if question.ImageFilename %}
+                <div class="mb-3">
+                    <img src="{{ url_for('uploaded_file', filename=question.ImageFilename) }}" 
+                         class="img-fluid rounded shadow-sm" 
+                         style="max-width: 100%; max-height: 300px; cursor: pointer;"
+                         alt="Question Image"
+                         onclick="openImageModal('{{ url_for('uploaded_file', filename=question.ImageFilename) }}')">
+                </div>
+                {% endif %}
+                
+                <!-- Check if this is a True/False question (Answer3 and Answer4 are empty/null) -->
+                {% set is_true_false = not (question.Answer3 and question.Answer3.strip() and question.Answer3|replace('<p>', '')|replace('</p>', '')|replace('<br>', '')|replace(' ', '')|replace('&nbsp;', '')) and not (question.Answer4 and question.Answer4.strip() and question.Answer4|replace('<p>', '')|replace('</p>', '')|replace('<br>', '')|replace(' ', '')|replace('&nbsp;', '')) %}
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <!-- Option A -->
+                        <div class="answer-option-review p-2 mb-2 rounded
+                            {% if question.CorrectAnswer == 1 %}bg-success text-white{% endif %}
+                            {% if question.SelectedAnswer == 1 %}{% if question.SelectedAnswer == question.CorrectAnswer %}border border-success{% else %}bg-danger text-white{% endif %}{% endif %}">
+                            {% if is_true_false %}
+                                <strong><i class="fas fa-check text-success"></i> True:</strong> {{ question.Answer1|safe }}
+                            {% else %}
+                                <strong>A.</strong> {{ question.Answer1|safe }}
+                            {% endif %}
+                            {% if question.SelectedAnswer == 1 %}
+                                <i class="fas fa-hand-point-right float-end" title="Your answer"></i>
+                            {% endif %}
+                            {% if question.CorrectAnswer == 1 %}
+                                <i class="fas fa-check float-end" title="Correct answer"></i>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Option B -->
+                        <div class="answer-option-review p-2 mb-2 rounded
+                            {% if question.CorrectAnswer == 2 %}bg-success text-white{% endif %}
+                            {% if question.SelectedAnswer == 2 %}{% if question.SelectedAnswer == question.CorrectAnswer %}border border-success{% else %}bg-danger text-white{% endif %}{% endif %}">
+                            {% if is_true_false %}
+                                <strong><i class="fas fa-times text-danger"></i> False:</strong> {{ question.Answer2|safe }}
+                            {% else %}
+                                <strong>B.</strong> {{ question.Answer2|safe }}
+                            {% endif %}
+                            {% if question.SelectedAnswer == 2 %}
+                                <i class="fas fa-hand-point-right float-end" title="Your answer"></i>
+                            {% endif %}
+                            {% if question.CorrectAnswer == 2 %}
+                                <i class="fas fa-check float-end" title="Correct answer"></i>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Only show Options C and D for Multiple Choice questions -->
+                    {% if not is_true_false %}
+                    <div class="col-md-6">
+                        <!-- Option C -->
+                        <div class="answer-option-review p-2 mb-2 rounded
+                            {% if question.CorrectAnswer == 3 %}bg-success text-white{% endif %}
+                            {% if question.SelectedAnswer == 3 %}{% if question.SelectedAnswer == question.CorrectAnswer %}border border-success{% else %}bg-danger text-white{% endif %}{% endif %}">
+                            <strong>C.</strong> {{ question.Answer3|safe }}
+                            {% if question.SelectedAnswer == 3 %}
+                                <i class="fas fa-hand-point-right float-end" title="Your answer"></i>
+                            {% endif %}
+                            {% if question.CorrectAnswer == 3 %}
+                                <i class="fas fa-check float-end" title="Correct answer"></i>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Option D -->
+                        <div class="answer-option-review p-2 mb-2 rounded
+                            {% if question.CorrectAnswer == 4 %}bg-success text-white{% endif %}
+                            {% if question.SelectedAnswer == 4 %}{% if question.SelectedAnswer == question.CorrectAnswer %}border border-success{% else %}bg-danger text-white{% endif %}{% endif %}">
+                            <strong>D.</strong> {{ question.Answer4|safe }}
+                            {% if question.SelectedAnswer == 4 %}
+                                <i class="fas fa-hand-point-right float-end" title="Your answer"></i>
+                            {% endif %}
+                            {% if question.CorrectAnswer == 4 %}
+                                <i class="fas fa-check float-end" title="Correct answer"></i>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Option E (if present) -->
+                        {% if question.Answer5 and question.Answer5.strip() and question.Answer5|replace('<p>', '')|replace('</p>', '')|replace('<br>', '')|replace(' ', '')|replace('&nbsp;', '') %}
+                        <div class="answer-option-review p-2 mb-2 rounded
+                            {% if question.CorrectAnswer == 5 %}bg-success text-white{% endif %}
+                            {% if question.SelectedAnswer == 5 %}{% if question.SelectedAnswer == question.CorrectAnswer %}border border-success{% else %}bg-danger text-white{% endif %}{% endif %}">
+                            <strong>E.</strong> {{ question.Answer5|safe }}
+                            {% if question.SelectedAnswer == 5 %}
+                                <i class="fas fa-hand-point-right float-end" title="Your answer"></i>
+                            {% endif %}
+                            {% if question.CorrectAnswer == 5 %}
+                                <i class="fas fa-check float-end" title="Correct answer"></i>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+                
+                {% if question.IsMarked %}
+                <div class="mt-2">
+                    <span class="badge bg-warning">
+                        <i class="fas fa-bookmark"></i> Marked for Review
+                    </span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-exclamation-circle fa-3x text-warning mb-3"></i>
+            <h4>No detailed results available</h4>
+            <p>Questions and answers are not available for this test result.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Action Buttons -->
+        <!-- Actions -->
+        <div class="row mt-4">
+            <div class="col-md-4 text-center">
+                {% if is_admin_view %}
+                    <a href="{{ url_for('admin_transactions') }}" class="btn btn-secondary btn-lg">
+                        <i class="fas fa-arrow-left"></i> Back to Transactions
+                    </a>
+                {% else %}
+                    <a href="{{ url_for('user_dashboard') }}" class="btn btn-secondary btn-lg">
+                        <i class="fas fa-arrow-left"></i> Back to Dashboard
+                    </a>
+                {% endif %}
+            </div>
+            <div class="col-md-4 text-center">
+                {% if not is_admin_view %}
+                    <a href="{{ url_for('verify_test_password_form', test_id=test_settings.id) }}" class="btn btn-success btn-lg">
+                        <i class="fas fa-redo"></i> Retake Test
+                    </a>
+                {% endif %}
+            </div>
+            <div class="col-md-4 text-center">
+                <a href="{{ url_for('user_login') }}" class="btn btn-outline-secondary btn-lg">
+                    <i class="fas fa-home"></i> Home
+                </a>
+            </div>
+        </div>
+
+<style>
+.answer-option-review {
+    margin: 10px 0;
+    padding: 15px;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    position: relative;
+}
+
+.answer-option-review.correct-answer {
+    background: #d4edda;
+    border-color: #c3e6cb;
+}
+
+.answer-option-review.user-correct {
+    background: #d1ecf1;
+    border-color: #bee5eb;
+}
+
+.answer-option-review.user-incorrect {
+    background: #f8d7da;
+    border-color: #f5c6cb;
+}
+
+.card .card-body h3 {
+    font-size: 2.5rem;
+    font-weight: bold;
+}
+</style>
+{% endblock %} 
+
+<!-- Footer -->
+

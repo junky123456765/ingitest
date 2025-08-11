@@ -1,0 +1,1024 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - IngiTest_v1
+
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-tachometer-alt"></i> Admin Dashboard</h2>
+    <div class="btn-group">
+        <a href="{{ url_for('user_settings') }}" class="btn btn-primary">
+            <i class="fas fa-users-cog"></i> User Test Settings
+        </a>
+        <a href="{{ url_for('test_settings') }}" class="btn btn-success">
+            <i class="fas fa-cogs"></i> Test Settings
+        </a>
+        <a href="{{ url_for('admin_transactions') }}" class="btn btn-info">
+            <i class="fas fa-chart-line"></i> Transactions & Activities
+        </a>
+        <a href="{{ url_for('logout') }}" class="btn btn-danger ms-2">
+            <i class="fas fa-sign-out-alt"></i> Logout
+        </a>
+    </div>
+</div>
+
+<!-- Quick Access Navigation -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-info">
+            <div class="card-header bg-info text-white">
+                <h5><i class="fas fa-compass"></i> Quick Access</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <a href="{{ url_for('user_settings') }}" class="btn btn-outline-primary btn-lg d-block mb-2">
+                            <i class="fas fa-users-cog fa-2x d-block mb-2"></i>
+                            <strong>User Test Settings</strong>
+                            <small class="d-block">Manage users and tests</small>
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{{ url_for('test_settings') }}" class="btn btn-outline-success btn-lg d-block mb-2">
+                            <i class="fas fa-question-circle fa-2x d-block mb-2"></i>
+                            <strong>Test Settings</strong>
+                            <small class="d-block">Manage questions</small>
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{{ url_for('admin_transactions') }}" class="btn btn-outline-info btn-lg d-block mb-2">
+                            <i class="fas fa-chart-line fa-2x d-block mb-2"></i>
+                            <strong>Transactions</strong>
+                            <small class="d-block">View user activities</small>
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{{ url_for('logout') }}" class="btn btn-outline-danger btn-lg d-block mb-2">
+                            <i class="fas fa-sign-out-alt fa-2x d-block mb-2"></i>
+                            <strong>Logout</strong>
+                            <small class="d-block">End admin session</small>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card bg-primary text-white">
+            <div class="card-body dashboard-card">
+                <div class="dashboard-number text-white">{{ completed_tests }}</div>
+                <h4><i class="fas fa-users"></i> Users Completed Tests</h4>
+                <p>Total number of users who have completed tests</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card bg-warning text-white">
+            <div class="card-body dashboard-card">
+                <div class="dashboard-number text-white">{{ active_tests }}</div>
+                <h4><i class="fas fa-clock"></i> Active Test Sessions</h4>
+                <p>Users currently taking tests</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- All Test Settings -->
+{% if all_tests_with_questions %}
+<div class="card mb-4">
+    <div class="card-header bg-info text-white">
+        <h4><i class="fas fa-cogs"></i> All Test Settings ({{ all_tests_with_questions|length }})</h4>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover table-sm">
+                <thead class="table-dark">
+                    <tr>
+                        <th><i class="fas fa-file-alt"></i> Test Name</th>
+                        <th class="text-center"><i class="fas fa-list-ol"></i> Target</th>
+                        <th class="text-center"><i class="fas fa-check-circle"></i> Active</th>
+                        <th class="text-center"><i class="fas fa-times-circle"></i> Disabled</th>
+                        <th class="text-center"><i class="fas fa-clock"></i> Duration</th>
+                        <th class="text-center"><i class="fas fa-graduation-cap"></i> Pass %</th>
+                        <th class="text-center"><i class="fas fa-redo"></i> Attempts</th>
+                        <th class="text-center d-none d-lg-table-cell"><i class="fas fa-shield-alt"></i> Test Pass</th>
+                        <th class="text-center"><i class="fas fa-traffic-light"></i> Status</th>
+                        <th class="text-center"><i class="fas fa-tools"></i> Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for test in all_tests_with_questions %}
+                    <tr class="{% if test.IsActive %}table-success{% endif %}">
+                        <td>
+                            <strong>{{ test.TestName }}</strong>
+                            {% if test.IsActive %}
+                                <span class="badge bg-success ms-2">Current</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            <span class="badge bg-primary">{{ test.NumberTestQuestions }}</span>
+                        </td>
+                        <td class="text-center">
+                            {% if test.ActualQuestions == test.NumberTestQuestions %}
+                                <span class="badge bg-success">{{ test.ActualQuestions }}</span>
+                                <i class="fas fa-check-circle text-success ms-1" title="Complete"></i>
+                            {% elif test.ActualQuestions > 0 %}
+                                <span class="badge bg-warning">{{ test.ActualQuestions }}</span>
+                                <i class="fas fa-exclamation-triangle text-warning ms-1" title="Incomplete"></i>
+                            {% else %}
+                                <span class="badge bg-danger">0</span>
+                                <i class="fas fa-times-circle text-danger ms-1" title="No questions"></i>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            {% if test.DisabledQuestions > 0 %}
+                                <span class="badge bg-secondary">{{ test.DisabledQuestions }}</span>
+                                <i class="fas fa-ban text-secondary ms-1" title="Disabled questions"></i>
+                            {% else %}
+                                <span class="badge bg-light text-dark">0</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            <span class="badge bg-info">{{ test.TimeDuration }}m</span>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge bg-warning">{{ test.PassingGrade or 70 }}%</span>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge bg-primary">{{ test.AttemptsAllowed or 3 }}</span>
+                        </td>
+                        <td class="text-center d-none d-lg-table-cell">
+                            {% if test.TestPassword %}
+                                <code class="small">{{ test.TestPassword[:3] }}***{{ test.TestPassword[-2:] }}</code>
+                                <i class="fas fa-eye ms-1" title="Click to reveal" style="cursor: pointer;" 
+                                   onclick="togglePassword(this, '{{ test.TestPassword }}')"
+                                   data-password="{{ test.TestPassword }}"></i>
+                            {% else %}
+                                <span class="text-muted small">Not set</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            {% if test.IsActive %}
+                                <span class="badge bg-success">
+                                    <i class="fas fa-play"></i> Active
+                                </span>
+                            {% else %}
+                                <span class="badge bg-secondary">
+                                    <i class="fas fa-pause"></i> Inactive
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            <div class="btn-group btn-group-sm" role="group">
+                                {% if not test.IsActive %}
+                                <a href="{{ url_for('activate_test_from_dashboard', test_id=test.id) }}" 
+                                   class="btn btn-outline-success btn-sm" title="Activate Test"
+                                   onclick="return confirm('Activate this test for users?')">
+                                    <i class="fas fa-play"></i>
+                                </a>
+                                {% else %}
+                                <a href="{{ url_for('deactivate_test_from_dashboard', test_id=test.id) }}" 
+                                   class="btn btn-outline-warning btn-sm" title="Deactivate Test"
+                                   onclick="return confirm('Deactivate this test for users?')">
+                                    <i class="fas fa-pause"></i>
+                                </a>
+                                {% endif %}
+                                <a href="{{ url_for('user_settings') }}" class="btn btn-outline-primary btn-sm" title="Edit Settings">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{{ url_for('test_settings') }}" class="btn btn-outline-warning btn-sm" title="Manage Questions">
+                                    <i class="fas fa-question-circle"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="card mb-4">
+    <div class="card-body text-center">
+        <i class="fas fa-exclamation-circle fa-3x text-warning mb-3"></i>
+        <h4>No Tests Configured</h4>
+        <p class="text-muted">Start by creating your first test.</p>
+        <a href="{{ url_for('user_settings') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Create First Test
+        </a>
+    </div>
+</div>
+{% endif %}
+
+<!-- Active Test Sessions -->
+<div class="card mb-4">
+    <div class="card-header bg-warning text-white">
+        <h4><i class="fas fa-clock"></i> Active Test Sessions ({{ active_sessions|length }})</h4>
+    </div>
+    <div class="card-body">
+        {% if active_sessions %}
+        <div class="table-responsive">
+            <table class="table table-hover table-sm">
+                <thead class="table-dark">
+                    <tr>
+                        <th><i class="fas fa-user"></i> User</th>
+                        <th><i class="fas fa-file-alt"></i> Test</th>
+                        <th><i class="fas fa-clock"></i> Started</th>
+                        <th><i class="fas fa-hourglass-half"></i> Duration</th>
+                        <th><i class="fas fa-flag-checkered"></i> Expected End</th>
+                        <th><i class="fas fa-list-ol"></i> Page</th>
+                        <th><i class="fas fa-traffic-light"></i> Status</th>
+                        <th><i class="fas fa-tools"></i> Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for session in active_sessions %}
+                    <tr class="{% if session.Status == 'Expired' %}table-danger{% endif %}">
+                        <td>
+                            <i class="fas fa-user text-primary"></i> 
+                            {{ session.UserName }}
+                        </td>
+                        <td>{{ session.TestName }}</td>
+                        <td>
+                            {% if session.StartTime %}
+                            <small>{{ session.StartTime.split(' ')[0] }}<br>
+                            {{ session.StartTime.split(' ')[1][:5] }}</small>
+                            {% else %}
+                            <small>--</small>
+                            {% endif %}
+                        </td>
+                        <td>{{ session.TimeDuration }} min</td>
+                        <td>
+                            {% if session.EndTime %}
+                            <small>{{ session.EndTime.split(' ')[0] }}<br>
+                            {{ session.EndTime.split(' ')[1][:5] }}</small>
+                            {% else %}
+                            <small>--</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge bg-info">{{ session.CurrentPage }}</span>
+                        </td>
+                        <td>
+                            {% if session.Status == 'Active' %}
+                                <span class="badge bg-success">
+                                    <i class="fas fa-play"></i> Active
+                                </span>
+                            {% else %}
+                                <span class="badge bg-danger">
+                                    <i class="fas fa-exclamation-triangle"></i> Expired
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            <div class="btn-group btn-group-sm" role="group">
+                                {% if session.Status == 'Expired' %}
+                                    <button class="btn btn-outline-danger btn-sm end-session-btn" title="End Expired Session" 
+                                            data-user-id="{{ session.UserId }}" 
+                                            data-test-name="{{ session.TestName|e }}" 
+                                            data-user-name="{{ session.UserName|e }}">
+                                        <i class="fas fa-sign-out-alt"></i>
+                                    </button>
+                                {% else %}
+                                    <span class="badge bg-secondary" title="Session is active - cannot be deleted">
+                                        <i class="fas fa-lock"></i> Protected
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center text-muted py-4">
+            <i class="fas fa-sleep fa-3x mb-3"></i>
+            <h5>No Active Sessions</h5>
+            <p>No users are currently taking tests.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Recent Test Results -->
+<div class="card mb-4">
+    <div class="card-header bg-success text-white">
+        <h4><i class="fas fa-chart-line"></i> Recent Test Results</h4>
+    </div>
+    <div class="card-body">
+        {% if recent_results %}
+        <div class="table-responsive">
+            <table class="table table-hover table-sm">
+                <thead class="table-dark">
+                    <tr>
+                        <th><i class="fas fa-user"></i> User</th>
+                        <th><i class="fas fa-file-alt"></i> Test</th>
+                        <th><i class="fas fa-calendar"></i> Date</th>
+                        <th><i class="fas fa-percentage"></i> Score</th>
+                        <th><i class="fas fa-medal"></i> Result</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for result in recent_results %}
+                    <tr>
+                        <td>
+                            <i class="fas fa-user text-primary"></i> 
+                            {{ result.UserName }}
+                        </td>
+                        <td>{{ result.TestName }}</td>
+                        <td>
+                            {% if result.TestDate %}
+                            <small>{{ result.TestDate.split(' ')[0] }}<br>
+                            <span class="text-muted">{{ result.TestDate.split(' ')[1][:8] }}</span></small>
+                            {% else %}
+                            <small>--</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge bg-info">{{ "%.2f"|format(result.Score) }}%</span>
+                        </td>
+                        <td>
+                            <span class="badge bg-{{ result.StatusClass }}">
+                                {% if result.PassFail == 'Pass' %}
+                                    <i class="fas fa-check"></i> Pass
+                                {% else %}
+                                    <i class="fas fa-times"></i> Fail
+                                {% endif %}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center text-muted py-4">
+            <i class="fas fa-inbox fa-3x mb-3"></i>
+            <h5>No test results yet</h5>
+            <p>Test results will appear here once users start completing tests.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Admin Cleanup Section -->
+<div class="card mb-4 border-danger">
+    <div class="card-header bg-danger text-white">
+        <h4><i class="fas fa-exclamation-triangle"></i> Admin Cleanup Center</h4>
+        <small>⚠️ Warning: These actions permanently delete data and cannot be undone!</small>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <!-- Delete Test History -->
+            <div class="col-md-4 mb-3">
+                <div class="card border-warning h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-history fa-3x text-warning mb-3"></i>
+                        <h5>Clear Test History</h5>
+                        <p class="text-muted">Delete all test results and user responses for all users</p>
+                        <button class="btn btn-warning" onclick="confirmCleanup('test_history')">
+                            <i class="fas fa-trash-alt"></i> Clear History
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Delete Tests -->
+            <div class="col-md-4 mb-3">
+                <div class="card border-info h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-file-alt fa-3x text-info mb-3"></i>
+                        <h5>Delete Tests</h5>
+                        <p class="text-muted">Remove specific tests and their questions permanently</p>
+                        <button class="btn btn-info" onclick="showDeleteTestsModal()">
+                            <i class="fas fa-trash-alt"></i> Manage Tests
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Delete Users -->
+            <div class="col-md-4 mb-3">
+                <div class="card border-secondary h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-users fa-3x text-secondary mb-3"></i>
+                        <h5>Delete Users</h5>
+                        <p class="text-muted">Remove user accounts and their associated data</p>
+                        <button class="btn btn-secondary" onclick="showDeleteUsersModal()">
+                            <i class="fas fa-trash-alt"></i> Manage Users
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Second Row -->
+        <div class="row">
+            <!-- Clear Login Sessions -->
+            <div class="col-md-4 mb-3">
+                <div class="card border-danger h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-sign-in-alt fa-3x text-danger mb-3"></i>
+                        <h5>Clear Login Sessions</h5>
+                        <p class="text-muted">Clear inactive login history (keeps active users logged in)</p>
+                        <div class="mb-2">
+                            <small class="text-muted">
+                                Inactive sessions: <span class="badge bg-danger">{{ inactive_sessions_count }}</span>
+                            </small>
+                        </div>
+                        <button class="btn btn-danger" onclick="confirmCleanup('clear_login_sessions')">
+                            <i class="fas fa-broom"></i> Clear History
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Placeholder for future cleanup options -->
+            <div class="col-md-4 mb-3">
+                <div class="card border-light h-100">
+                    <div class="card-body text-center text-muted">
+                        <i class="fas fa-plus fa-3x text-light mb-3"></i>
+                        <h5 class="text-muted">Future Option</h5>
+                        <p>Additional cleanup options can be added here</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Another placeholder -->
+            <div class="col-md-4 mb-3">
+                <div class="card border-light h-100">
+                    <div class="card-body text-center text-muted">
+                        <i class="fas fa-cog fa-3x text-light mb-3"></i>
+                        <h5 class="text-muted">System Maintenance</h5>
+                        <p>Database optimization and maintenance tools</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="alert alert-danger mt-3" role="alert">
+            <i class="fas fa-shield-alt"></i>
+            <strong>Security Notice:</strong> All cleanup operations require admin password confirmation. 
+            Data deletion is immediate and irreversible.
+        </div>
+    </div>
+</div>
+
+<!-- Password Confirmation Modal -->
+<div class="modal fade" id="passwordConfirmModal" tabindex="-1" aria-labelledby="passwordConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="passwordConfirmModalLabel">
+                    <i class="fas fa-shield-alt"></i> Confirm Admin Password
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Warning:</strong> You are about to perform a destructive action that cannot be undone.
+                </div>
+                
+                <div id="cleanupActionDescription" class="mb-3"></div>
+                
+                <form id="cleanupForm">
+                    <div class="mb-3">
+                        <label for="adminPassword" class="form-label">
+                            <i class="fas fa-lock"></i> Enter Admin Password
+                        </label>
+                        <input type="password" class="form-control" id="adminPassword" required>
+                        <div class="form-text">Confirm your identity to proceed with this action.</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="confirmAction" required>
+                            <label class="form-check-label text-danger" for="confirmAction">
+                                <strong>I understand this action is permanent and cannot be undone</strong>
+                            </label>
+                        </div>
+                    </div>
+                </form>
+                
+                <div id="cleanupResult" class="mt-3" style="display: none;"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+                <button type="button" class="btn btn-danger" id="executeCleanup" onclick="executeCleanupAction()">
+                    <i class="fas fa-trash-alt"></i> Execute Cleanup
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Tests Modal -->
+<div class="modal fade" id="deleteTestsModal" tabindex="-1" aria-labelledby="deleteTestsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title" id="deleteTestsModalLabel">
+                    <i class="fas fa-file-alt"></i> Delete Tests
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    Select tests to delete. This will remove the test, all questions, and associated results.
+                </div>
+                
+                <div id="testsListForDeletion">
+                    {% if all_tests_with_questions %}
+                    {% for test in all_tests_with_questions %}
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" value="{{ test.id }}" id="test_{{ test.id }}" data-test-name="{{ test.TestName }}">
+                        <label class="form-check-label" for="test_{{ test.id }}">
+                            <strong>{{ test.TestName }}</strong>
+                            <span class="badge bg-secondary ms-2">{{ test.ActualQuestions }} questions</span>
+                            {% if test.IsActive %}
+                            <span class="badge bg-success ms-1">Active</span>
+                            {% endif %}
+                        </label>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <p class="text-muted">No tests available for deletion.</p>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+                <button type="button" class="btn btn-info" onclick="confirmDeleteSelectedTests()">
+                    <i class="fas fa-trash-alt"></i> Delete Selected
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Users Modal -->
+<div class="modal fade" id="deleteUsersModal" tabindex="-1" aria-labelledby="deleteUsersModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-secondary text-white">
+                <h5 class="modal-title" id="deleteUsersModalLabel">
+                    <i class="fas fa-users"></i> Delete Users
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Select users to delete. This will remove the user account and all associated test data.
+                </div>
+                
+                <div id="usersListForDeletion">
+                    {% if users %}
+                    {% for user in users %}
+                    {% if user.UserName != 'admin' %}
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" value="{{ user.UserId }}" id="user_{{ user.UserId }}" data-user-name="{{ user.UserName }}">
+                        <label class="form-check-label" for="user_{{ user.UserId }}">
+                            <strong>{{ user.UserName }}</strong>
+                            {% if user.IsEligible %}
+                            <span class="badge bg-success ms-2">Eligible</span>
+                            {% else %}
+                            <span class="badge bg-secondary ms-2">Inactive</span>
+                            {% endif %}
+                        </label>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                    {% else %}
+                    <p class="text-muted">No users available for deletion.</p>
+                    {% endif %}
+                </div>
+                
+                <div class="alert alert-danger mt-3">
+                    <i class="fas fa-shield-alt"></i>
+                    <strong>Note:</strong> Admin account cannot be deleted and is not shown in this list.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="confirmDeleteSelectedUsers()">
+                    <i class="fas fa-trash-alt"></i> Delete Selected
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentCleanupAction = '';
+let selectedItems = [];
+
+function confirmCleanup(action) {
+    currentCleanupAction = action;
+    selectedItems = [];
+    
+    let description = '';
+    switch(action) {
+        case 'test_history':
+            description = '<strong>Clear All Test History:</strong><br>This will delete all test results, user responses, and test sessions for all users. User accounts and test configurations will remain intact.';
+            break;
+        case 'clear_login_sessions':
+            description = '<strong>Clear All Login Sessions:</strong><br>This will log out all currently active users and clear their recent login history. This action cannot be undone.';
+            break;
+    }
+    
+    document.getElementById('cleanupActionDescription').innerHTML = description;
+    document.getElementById('adminPassword').value = '';
+    document.getElementById('confirmAction').checked = false;
+    document.getElementById('cleanupResult').style.display = 'none';
+    
+    var modal = new bootstrap.Modal(document.getElementById('passwordConfirmModal'));
+    modal.show();
+}
+
+function showDeleteTestsModal() {
+    var modal = new bootstrap.Modal(document.getElementById('deleteTestsModal'));
+    modal.show();
+}
+
+function showDeleteUsersModal() {
+    var modal = new bootstrap.Modal(document.getElementById('deleteUsersModal'));
+    modal.show();
+}
+
+function confirmDeleteSelectedTests() {
+    const selectedCheckboxes = document.querySelectorAll('#testsListForDeletion input[type="checkbox"]:checked');
+    
+    if (selectedCheckboxes.length === 0) {
+        alert('Please select at least one test to delete.');
+        return;
+    }
+    
+    selectedItems = Array.from(selectedCheckboxes).map(cb => ({
+        id: cb.value,
+        name: cb.getAttribute('data-test-name')
+    }));
+    
+    currentCleanupAction = 'delete_tests';
+    
+    const testNames = selectedItems.map(item => item.name).join(', ');
+    const description = `<strong>Delete Selected Tests:</strong><br>You are about to permanently delete the following tests and all their questions and results:<br><strong>${testNames}</strong>`;
+    
+    document.getElementById('cleanupActionDescription').innerHTML = description;
+    document.getElementById('adminPassword').value = '';
+    document.getElementById('confirmAction').checked = false;
+    document.getElementById('cleanupResult').style.display = 'none';
+    
+    // Hide the tests modal and show password confirmation
+    bootstrap.Modal.getInstance(document.getElementById('deleteTestsModal')).hide();
+    var modal = new bootstrap.Modal(document.getElementById('passwordConfirmModal'));
+    modal.show();
+}
+
+function confirmDeleteSelectedUsers() {
+    const selectedCheckboxes = document.querySelectorAll('#usersListForDeletion input[type="checkbox"]:checked');
+    
+    if (selectedCheckboxes.length === 0) {
+        alert('Please select at least one user to delete.');
+        return;
+    }
+    
+    selectedItems = Array.from(selectedCheckboxes).map(cb => ({
+        id: cb.value,
+        name: cb.getAttribute('data-user-name')
+    }));
+    
+    currentCleanupAction = 'delete_users';
+    
+    const userNames = selectedItems.map(item => item.name).join(', ');
+    const description = `<strong>Delete Selected Users:</strong><br>You are about to permanently delete the following user accounts and all their test data:<br><strong>${userNames}</strong>`;
+    
+    document.getElementById('cleanupActionDescription').innerHTML = description;
+    document.getElementById('adminPassword').value = '';
+    document.getElementById('confirmAction').checked = false;
+    document.getElementById('cleanupResult').style.display = 'none';
+    
+    // Hide the users modal and show password confirmation
+    bootstrap.Modal.getInstance(document.getElementById('deleteUsersModal')).hide();
+    var modal = new bootstrap.Modal(document.getElementById('passwordConfirmModal'));
+    modal.show();
+}
+
+function executeCleanupAction() {
+    const password = document.getElementById('adminPassword').value;
+    const confirmed = document.getElementById('confirmAction').checked;
+    
+    if (!password) {
+        alert('Please enter your admin password.');
+        return;
+    }
+    
+    if (!confirmed) {
+        alert('Please confirm that you understand this action is permanent.');
+        return;
+    }
+    
+    // Disable the execute button to prevent double-clicks
+    document.getElementById('executeCleanup').disabled = true;
+    document.getElementById('executeCleanup').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+    
+    // Prepare the request data
+    const requestData = {
+        action: currentCleanupAction,
+        password: password,
+        items: selectedItems
+    };
+    
+    // Send the cleanup request
+    fetch('/admin/cleanup', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        const resultDiv = document.getElementById('cleanupResult');
+        resultDiv.style.display = 'block';
+        
+        if (data.success) {
+            resultDiv.innerHTML = `
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle"></i>
+                    <strong>Success:</strong> ${data.message}
+                </div>
+            `;
+            
+            // Refresh the page after successful cleanup
+            setTimeout(() => {
+                window.location.reload();
+            }, 2000);
+        } else {
+            resultDiv.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <strong>Error:</strong> ${data.message}
+                </div>
+            `;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        const resultDiv = document.getElementById('cleanupResult');
+        resultDiv.style.display = 'block';
+        resultDiv.innerHTML = `
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-circle"></i>
+                <strong>Error:</strong> Failed to execute cleanup action. Please try again.
+            </div>
+        `;
+    })
+    .finally(() => {
+        // Re-enable the execute button
+        document.getElementById('executeCleanup').disabled = false;
+        document.getElementById('executeCleanup').innerHTML = '<i class="fas fa-trash-alt"></i> Execute Cleanup';
+    });
+}
+
+// Password toggle function for Test Pass field
+function togglePassword(icon, fullPassword) {
+    const codeElement = icon.previousElementSibling;
+    const isRevealed = icon.classList.contains('fa-eye-slash');
+    
+    if (isRevealed) {
+        // Hide password
+        codeElement.textContent = fullPassword.substring(0, 3) + '***' + fullPassword.substring(fullPassword.length - 2);
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+        icon.title = 'Click to reveal';
+    } else {
+        // Show password
+        codeElement.textContent = fullPassword;
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+        icon.title = 'Click to hide';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🔧 Admin Dashboard JavaScript loaded');
+    
+    // Session deletion modal variables
+    let currentUserId, currentTestName, currentUserName;
+    
+    // Attach delete button event listeners for expired sessions
+    document.querySelectorAll('.end-session-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            console.log('🗑️ Delete button clicked for expired session');
+            
+            currentUserId = this.getAttribute('data-user-id');
+            currentTestName = this.getAttribute('data-test-name');
+            currentUserName = this.getAttribute('data-user-name');
+            
+            console.log('Session details:', { currentUserId, currentTestName, currentUserName });
+            
+            // Update modal content
+            document.getElementById('sessionDetails').innerHTML = 
+                `Are you sure you want to delete the expired test session for <strong>${currentUserName}</strong> for the "<strong>${currentTestName}</strong>" test?`;
+            
+            // Clear previous password
+            const passwordField = document.getElementById('adminPassword');
+            if (passwordField) {
+                passwordField.value = '';
+                console.log('✅ Password field cleared');
+            } else {
+                console.error('❌ Password field not found!');
+            }
+            
+            // Show modal
+            try {
+                const modal = new bootstrap.Modal(document.getElementById('passwordModal'));
+                modal.show();
+                console.log('✅ Modal shown for expired session');
+            } catch (error) {
+                console.error('❌ Error showing modal:', error);
+                alert('Error opening password modal. Please try again.');
+            }
+        });
+    });
+    
+    // Handle confirm delete button
+    const confirmDeleteBtn = document.getElementById('confirmDelete');
+    if (confirmDeleteBtn) {
+        confirmDeleteBtn.addEventListener('click', function() {
+            console.log('🔐 Confirm delete button clicked');
+            
+            const passwordField = document.getElementById('adminPassword');
+            const adminPassword = passwordField ? passwordField.value : '';
+            
+            console.log('Password field exists:', passwordField !== null);
+            console.log('Password provided:', adminPassword ? 'YES' : 'NO');
+            
+            if (!adminPassword.trim()) {
+                console.error('❌ Password is empty');
+                alert('Admin password is required to delete a session.');
+                return;
+            }
+            
+            console.log('✅ Password provided, proceeding with deletion');
+            
+            // Disable button during request
+            this.disabled = true;
+            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Deleting...';
+            
+            fetch('/admin/end-session', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    user_id: currentUserId,
+                    test_name: currentTestName,
+                    admin_password: adminPassword
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Server response:', data);
+                if (data.success) {
+                    alert('✅ Test session deleted successfully!');
+                    window.location.reload();
+                } else {
+                    alert('❌ Error: ' + data.message);
+                    // Re-enable button
+                    this.disabled = false;
+                    this.innerHTML = '<i class="fas fa-trash"></i> Delete Session';
+                }
+            })
+            .catch(error => {
+                console.error('Error deleting session:', error);
+                alert('❌ Failed to delete session. Please try again.');
+                // Re-enable button
+                this.disabled = false;
+                this.innerHTML = '<i class="fas fa-trash"></i> Delete Session';
+            })
+            .finally(() => {
+                // Hide modal
+                try {
+                    const modalInstance = bootstrap.Modal.getInstance(document.getElementById('passwordModal'));
+                    if (modalInstance) {
+                        modalInstance.hide();
+                    }
+                } catch (error) {
+                    console.error('Error hiding modal:', error);
+                }
+            });
+        });
+    } else {
+        console.error('❌ Confirm delete button not found!');
+    }
+    
+    // Handle Enter key in password field
+    const passwordField = document.getElementById('adminPassword');
+    if (passwordField) {
+        passwordField.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                console.log('⌨️ Enter key pressed in password field');
+                document.getElementById('confirmDelete').click();
+            }
+        });
+    } else {
+        console.error('❌ Password field not found for Enter key handler!');
+    }
+    
+    console.log('✅ All expired session action handlers attached successfully');
+});
+</script>
+
+<!-- Password Confirmation Modal for Ending Sessions -->
+<div class="modal fade" id="endSessionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle text-warning"></i> 
+                    Confirm End Session
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <strong>Warning:</strong> You are about to forcefully end an active test session.
+                </div>
+                <p><strong>User:</strong> <span id="sessionUserName"></span></p>
+                <p><strong>Test:</strong> <span id="sessionTestName"></span></p>
+                <p class="text-muted">This action will:</p>
+                <ul class="text-muted">
+                    <li>Immediately terminate the user's test session</li>
+                    <li>Auto-submit their current answers</li>
+                    <li>Mark the test as completed</li>
+                </ul>
+                
+                <div class="mb-3">
+                    <label for="adminPasswordConfirm" class="form-label">
+                        <strong>Enter your admin password to confirm:</strong>
+                    </label>
+                    <input type="password" class="form-control" id="adminPasswordConfirm" 
+                           placeholder="Admin password" required>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmEndSessionBtn">
+                    <i class="fas fa-sign-out-alt"></i> End Session
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Password Modal for Session Deletion -->
+<div class="modal fade" id="passwordModal" tabindex="-1" aria-labelledby="passwordModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="passwordModalLabel">
+                    <i class="fas fa-lock"></i> Admin Authorization Required
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-3" id="sessionDetails">Are you sure you want to delete this expired test session?</p>
+                <div class="mb-3">
+                    <label for="adminPassword" class="form-label">Enter your admin password:</label>
+                    <input type="password" class="form-control" id="adminPassword" placeholder="Admin password" required>
+                </div>
+                <div class="alert alert-warning small mb-0">
+                    <i class="fas fa-exclamation-triangle"></i> This action cannot be undone.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDelete">
+                    <i class="fas fa-trash"></i> Delete Session
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+<!-- Footer -->
+

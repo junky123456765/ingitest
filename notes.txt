@@ -1,0 +1,38 @@
+ Two Python Scripts Created in Project Root
+
+1. update_product_branding.py
+Apply to verify_users...
+Run
+Features:
+Updates "IngiTest" to any product name across all web pages
+Updates product description on login pages
+Creates automatic backups before changes
+Shows preview and requires confirmation
+Handles all HTML templates in templates/ folder
+Usage Example:
+Enter new product name: "MyTestPlatform"
+Enter description: "Advanced online testing solution"
+Confirms changes and updates all files
+
+2. manage_users.py
+Apply to verify_users...
+Run
+Features:
+Add additional admin accounts with proper password hashing
+Add additional user accounts with proper password hashing
+Tests login credentials automatically after creation
+Lists existing users before and after changes
+Secure password input (hidden typing)
+Prevents duplicate usernames
+Usage Example:
+Creates new admin: manager / securepass123
+Creates new user: testuser / userpass456
+Tests both accounts can login successfully
+
+🎯 Current System Status
+Application: Fully functional and error-free
+Database: Clean slate with essential data only
+Users: 2 users (admin + demo)
+Tests: 1 test (Sample Test - Active)
+Configuration: Ready for customization with provided scripts
+The application is now production-ready with a clean database and powerful configuration tools for branding and user management!

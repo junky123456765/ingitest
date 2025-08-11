@@ -1,0 +1,335 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - IngiTest_v1{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-tachometer-alt"></i> Welcome, {{ username }}</h2>
+    <a href="{{ url_for('logout') }}" class="btn btn-danger">
+        <i class="fas fa-sign-out-alt"></i> Logout
+    </a>
+</div>
+
+<!-- Available Tests -->
+{% if available_tests %}
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <h4><i class="fas fa-clipboard-list"></i> Available Tests</h4>
+    </div>
+    <div class="card-body">
+        <!-- Active Sessions Alert -->
+        {% if active_sessions %}
+        <div class="alert alert-warning mb-4">
+            <h6><i class="fas fa-exclamation-triangle"></i> Active Test Sessions</h6>
+            <p class="mb-2">You have ongoing test sessions. You can continue from where you left off:</p>
+            {% for session in active_sessions %}
+            <div class="d-flex justify-content-between align-items-center mt-2">
+                <span><strong>{{ session.TestName }}</strong> - Page {{ session.CurrentPage }}</span>
+                <a href="{{ url_for('test_page', page=session.CurrentPage) }}" class="btn btn-sm btn-warning">
+                    <i class="fas fa-play"></i> Continue
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <!-- Available Tests List -->
+        <div class="row">
+            {% for test in available_tests %}
+            <div class="col-md-6 mb-3">
+                <div class="card {% if test.IsActive %}border-success{% else %}border-secondary{% endif %}">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0">{{ test.TestName }}</h6>
+                        {% if test.IsActive %}
+                        <span class="badge bg-success">Active</span>
+                        {% else %}
+                        <span class="badge bg-secondary">Available</span>
+                        {% endif %}
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted mb-2">
+                            <i class="fas fa-question-circle"></i> 
+                            {% set active_questions = test_results|selectattr('TestName', 'equalto', test.TestName)|map(attribute='TotalQuestions')|first %}
+                            {% if active_questions %}
+                                {{ active_questions }} questions
+                            {% else %}
+                                {{ test.NumberTestQuestions }} questions
+                            {% endif %}
+                            • <i class="fas fa-clock"></i> {{ test.TimeDuration }} minutes
+                            • <i class="fas fa-redo"></i> 
+                            {% if test.attempts_remaining > 0 %}
+                                <span class="text-success">{{ test.attempts_remaining }} attempts remaining</span>
+                            {% else %}
+                                <span class="text-danger">No attempts remaining</span>
+                            {% endif %}
+                        </p>
+                        
+                        <!-- Check if user has already taken this test -->
+                        {% set user_result = test_results|selectattr('TestName', 'equalto', test.TestName)|first %}
+                        {% if user_result %}
+                        <div class="mb-2">
+                            <small class="text-muted">
+                                Latest attempt: 
+                                <span class="badge {% if user_result.PassFail == 'Pass' %}bg-success{% else %}bg-danger{% endif %}">
+                                    {{ "%.2f"|format(user_result.Score) }}% - {{ user_result.PassFail }}
+                                </span>
+                                <br>
+                                <span class="text-muted">
+                                    Attempts used: {{ test.attempts_used }}/{{ test.attempts_allowed }}
+                                </span>
+                            </small>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Check if user has active session for this test -->
+                        {% set active_session = active_sessions|selectattr('TestName', 'equalto', test.TestName)|first %}
+                        {% if active_session %}
+                        <a href="{{ url_for('test_page', page=active_session.CurrentPage) }}" class="btn btn-warning btn-sm">
+                            <i class="fas fa-play"></i> Continue (Page {{ active_session.CurrentPage }})
+                        </a>
+                        {% elif test.attempts_remaining > 0 %}
+                        <a href="{{ url_for('verify_test_password_form', test_id=test.id) }}" class="btn btn-success btn-sm">
+                            <i class="fas fa-play"></i> {% if user_result %}Retake Test{% else %}Start Test{% endif %}
+                        </a>
+                        {% else %}
+                        <button class="btn btn-secondary btn-sm" disabled>
+                            <i class="fas fa-ban"></i> No Attempts Remaining
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="card mb-4">
+    <div class="card-body text-center">
+        <i class="fas fa-exclamation-circle fa-3x text-warning mb-3"></i>
+        <h4>No Tests Available</h4>
+        <p class="text-muted">There are currently no tests available. Please contact your administrator.</p>
+    </div>
+</div>
+{% endif %}
+
+<!-- Enhanced Test History Statistics -->
+{% if test_results %}
+<div class="row mb-4">
+    <!-- Overall Statistics Cards - Row 1 (4 cards) -->
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card bg-info text-white">
+            <div class="card-body text-center">
+                <h3>{{ overall_stats.total_tests }}</h3>
+                <p class="mb-0"><i class="fas fa-list"></i> Total Tests Taken</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card bg-success text-white">
+            <div class="card-body text-center">
+                <h3>{{ overall_stats.tests_passed }}</h3>
+                <p class="mb-0"><i class="fas fa-check"></i> Tests Passed</p>
+                <small>{{ overall_stats.tests_failed }} Failed</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body text-center">
+                <h3>{{ "%.2f"|format(overall_stats.avg_score) }}%</h3>
+                <p class="mb-0"><i class="fas fa-chart-line"></i> Average Score</p>
+                <small>Best: {{ "%.2f"|format(overall_stats.highest_score) }}% | Worst: {{ "%.2f"|format(overall_stats.lowest_score) }}%</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body text-center">
+                <h3>{{ overall_stats.total_unanswered or 0 }}</h3>
+                <p class="mb-0"><i class="fas fa-question-circle"></i> Unanswered Questions</p>
+                <small>Across all tests</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Row 2 - Additional Statistics -->
+{% if overall_stats.total_time_spent > 0 %}
+<div class="row mb-4">
+    <div class="col-lg-4 col-md-6 mb-3">
+        <div class="card bg-secondary text-white">
+            <div class="card-body text-center">
+                <h3>{{ overall_stats.total_time_spent }}</h3>
+                <p class="mb-0"><i class="fas fa-clock"></i> Total Time (min)</p>
+                <small>Across all tests</small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Per-Test Statistics -->
+{% if test_stats %}
+<div class="card mb-4">
+    <div class="card-header bg-secondary text-white">
+        <h5><i class="fas fa-chart-bar"></i> Test-wise Performance</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            {% for test_name, stats in test_stats.items() %}
+            <div class="col-lg-6 col-md-12 mb-3">
+                <div class="card border-left-primary">
+                    <div class="card-body">
+                        <h6 class="card-title text-primary">{{ test_name }}</h6>
+                        <div class="row">
+                            <div class="col-6">
+                                <small class="text-muted">Attempts:</small>
+                                <div class="font-weight-bold">{{ stats.attempts }}</div>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted">Success Rate:</small>
+                                <div class="font-weight-bold">
+                                    {% if stats.attempts > 0 %}
+                                    {{ ((stats.passed / stats.attempts) * 100)|round(1) }}%
+                                    {% else %}
+                                    0%
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-6">
+                                <small class="text-muted">Best Score:</small>
+                                <div class="font-weight-bold text-success">{{ "%.2f"|format(stats.best_score) }}%</div>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted">Avg Time:</small>
+                                <div class="font-weight-bold">{{ stats.avg_time }} min</div>
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            <span class="badge bg-success">{{ stats.passed }} Passed</span>
+                            <span class="badge bg-danger">{{ stats.failed }} Failed</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endif %}
+
+<!-- Test Results History -->
+<div class="card">
+    <div class="card-header bg-secondary text-white">
+        <h4><i class="fas fa-history"></i> Test History</h4>
+    </div>
+    <div class="card-body">
+        {% if test_results %}
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th><i class="fas fa-file-alt"></i> Test Name</th>
+                        <th><i class="fas fa-calendar"></i> Date Taken</th>
+                        <th><i class="fas fa-percentage"></i> Score</th>
+                        <th><i class="fas fa-check-circle"></i> Result</th>
+                        <th><i class="fas fa-eye"></i> Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for result in test_results %}
+                    <tr>
+                        <td>
+                            <strong>{{ result.TestName }}</strong>
+                        </td>
+                        <td>
+                            <i class="fas fa-calendar-alt"></i> 
+                            {% if result.TestDate %}
+                            {{ result.TestDate.split(' ')[0] }} 
+                            <small class="text-muted">{{ result.TestDate.split(' ')[1][:5] }}</small>
+                            {% else %}
+                            --
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge bg-primary fs-6">{{ "%.2f"|format(result.Score) }}%</span>
+                        </td>
+                        <td>
+                            {% if result.PassFail == 'Pass' %}
+                                <span class="badge bg-success">
+                                    <i class="fas fa-check"></i> Pass
+                                </span>
+                            {% else %}
+                                <span class="badge bg-danger">
+                                    <i class="fas fa-times"></i> Fail
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ url_for('view_test_result', result_id=result.id) }}" 
+                               class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-eye"></i> View Details
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center text-muted py-5">
+            <i class="fas fa-inbox fa-3x mb-3"></i>
+            <h5>No Test History</h5>
+            <p>You haven't taken any tests yet. Start your first test above!</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Instructions -->
+{% if available_tests and not test_results %}
+<div class="card mt-4">
+    <div class="card-header bg-info text-white">
+        <h5><i class="fas fa-info-circle"></i> Getting Started</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <h6><i class="fas fa-play text-success"></i> How to Take a Test</h6>
+                <ol>
+                    <li>Click "Start New Test" above</li>
+                    <li>Read the instructions carefully</li>
+                    <li>Answer all questions within the time limit</li>
+                    <li>Submit your test when complete</li>
+                    <li>View your results instantly</li>
+                </ol>
+            </div>
+            <div class="col-md-6">
+                <h6><i class="fas fa-lightbulb text-warning"></i> Tips for Success</h6>
+                <ul>
+                    <li>Read each question carefully</li>
+                    <li>Use the mark feature for difficult questions</li>
+                    <li>Manage your time effectively</li>
+                    <li>Review marked questions before submitting</li>
+                    <li>Don't refresh the browser during the test</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<style>
+.card .card-body h3 {
+    font-size: 2.5rem;
+    font-weight: bold;
+}
+</style>
+{% endblock %} 
+
+<!-- Footer -->
+

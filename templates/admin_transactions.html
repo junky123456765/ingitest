@@ -1,0 +1,499 @@
+{% extends "base.html" %}
+
+{% block title %}User Transactions - IngiTest_v1{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-chart-line"></i> User Transactions & Activities</h2>
+    <div class="btn-group">
+        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+        <a href="{{ url_for('logout') }}" class="btn btn-danger">
+            <i class="fas fa-sign-out-alt"></i> Logout
+        </a>
+    </div>
+</div>
+
+<!-- Summary Statistics -->
+<div class="row mb-4">
+    <div class="col-md-2">
+        <div class="card bg-primary text-white">
+            <div class="card-body text-center">
+                <h3>{{ stats.total_test_results }}</h3>
+                <small><i class="fas fa-clipboard-check"></i> Test Results</small>
+                <div class="mt-1"><small>(Last 100)</small></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card bg-warning text-white">
+            <div class="card-body text-center">
+                <h3>{{ stats.active_sessions }}</h3>
+                <small><i class="fas fa-clock"></i> Active Sessions</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card bg-success text-white">
+            <div class="card-body text-center">
+                <h3>{{ stats.total_users }}</h3>
+                <small><i class="fas fa-users"></i> Total Users</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card bg-info text-white">
+            <div class="card-body text-center">
+                <h3>{{ stats.total_tests }}</h3>
+                <small><i class="fas fa-file-alt"></i> Total Tests</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card bg-secondary text-white">
+            <div class="card-body text-center">
+                <h3>{{ stats.total_responses }}</h3>
+                <small><i class="fas fa-check-square"></i> Responses</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card bg-dark text-white">
+            <div class="card-body text-center">
+                <h3 id="currentTime">--:--</h3>
+                <small><i class="fas fa-clock"></i> Current Time</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Test Results with Pagination -->
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <h4><i class="fas fa-clipboard-check"></i> Test Results (Last 100 - Page {{ pagination.page }})</h4>
+        <span class="badge bg-light text-dark">Showing {{ test_results|length }} of {{ pagination.total }} entries</span>
+    </div>
+    <div class="card-body p-0">
+        {% if test_results %}
+        <!-- Pagination Controls Top -->
+        {% if pagination.total_pages > 1 %}
+        <div class="p-3 border-bottom">
+            <nav aria-label="Test results pagination">
+                <ul class="pagination pagination-sm mb-0 justify-content-center">
+                    {% if pagination.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('admin_transactions', page=pagination.prev_num) }}">
+                            <i class="fas fa-chevron-left"></i> Previous
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for page_num in range(1, pagination.total_pages + 1) %}
+                    <li class="page-item {{ 'active' if page_num == pagination.page else '' }}">
+                        <a class="page-link" href="{{ url_for('admin_transactions', page=page_num) }}">
+                            {{ page_num }}
+                        </a>
+                    </li>
+                    {% endfor %}
+                    
+                    {% if pagination.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('admin_transactions', page=pagination.next_num) }}">
+                            Next <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+        
+        <!-- Scrollable Table Container -->
+        <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+            <table class="table table-hover table-sm mb-0">
+                <thead class="table-dark sticky-top">
+                    <tr>
+                        <th><i class="fas fa-hashtag"></i> ID</th>
+                        <th><i class="fas fa-user"></i> User</th>
+                        <th><i class="fas fa-file-alt"></i> Test</th>
+                        <th><i class="fas fa-medal"></i> Result</th>
+                        <th><i class="fas fa-percentage"></i> Score</th>
+                        <th><i class="fas fa-check-square"></i> Answered</th>
+                        <th><i class="fas fa-clock"></i> Duration</th>
+                        <th><i class="fas fa-calendar"></i> Date/Time</th>
+                        <th><i class="fas fa-tools"></i> Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for result in test_results %}
+                    <tr>
+                        <td><span class="badge bg-secondary">{{ result.id }}</span></td>
+                        <td>
+                            <i class="fas fa-user text-primary"></i>
+                            <strong>{{ result.UserName }}</strong>
+                        </td>
+                        <td>{{ result.TestName }}</td>
+                        <td>
+                            <span class="badge bg-{{ 'success' if result.PassFail == 'Pass' else 'danger' }}">
+                                <i class="fas fa-{{ 'check' if result.PassFail == 'Pass' else 'times' }}"></i>
+                                {{ result.PassFail }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge bg-info">{{ "%.2f"|format(result.Score) or 0 }}%</span>
+                        </td>
+                        <td>
+                            <span class="badge bg-warning">{{ result.TotalAnswered or 0 }}</span>
+                        </td>
+                        <td>
+                            <span class="badge bg-secondary">{{ "%.1f"|format(result.TimeConsumed or 0) }}m</span>
+                        </td>
+                        <td>
+                            <small>
+                                {% if result.TestDate %}
+                                {{ result.TestDate.split(' ')[0] }}<br>
+                                {{ result.TestDate.split(' ')[1][:8] }}
+                                {% else %}
+                                --
+                                {% endif %}
+                            </small>
+                        </td>
+                        <td>
+                            <a href="{{ url_for('view_test_result', result_id=result.id) }}" 
+                               class="btn btn-sm btn-outline-primary" title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination Controls Bottom -->
+        {% if pagination.total_pages > 1 %}
+        <div class="p-3 border-top">
+            <nav aria-label="Test results pagination">
+                <ul class="pagination pagination-sm mb-0 justify-content-center">
+                    {% if pagination.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('admin_transactions', page=pagination.prev_num) }}">
+                            <i class="fas fa-chevron-left"></i> Previous
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for page_num in range(1, pagination.total_pages + 1) %}
+                    <li class="page-item {{ 'active' if page_num == pagination.page else '' }}">
+                        <a class="page-link" href="{{ url_for('admin_transactions', page=page_num) }}">
+                            {{ page_num }}
+                        </a>
+                    </li>
+                    {% endfor %}
+                    
+                    {% if pagination.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('admin_transactions', page=pagination.next_num) }}">
+                            Next <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+        
+        {% else %}
+        <div class="text-center text-muted py-4">
+            <i class="fas fa-inbox fa-3x mb-3"></i>
+            <h5>No Test Results</h5>
+            <p>No users have completed any tests yet.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Active Test Sessions with Scrolling -->
+<div class="card mb-4">
+    <div class="card-header bg-warning text-white">
+        <h4><i class="fas fa-clock"></i> Active Test Sessions ({{ active_sessions|length }})</h4>
+    </div>
+    <div class="card-body p-0">
+        {% if active_sessions %}
+        <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+            <table class="table table-hover table-sm mb-0">
+                <thead class="table-dark sticky-top">
+                    <tr>
+                        <th><i class="fas fa-hashtag"></i> ID</th>
+                        <th><i class="fas fa-user"></i> User</th>
+                        <th><i class="fas fa-file-alt"></i> Test</th>
+                        <th><i class="fas fa-play"></i> Started</th>
+                        <th><i class="fas fa-hourglass-half"></i> Duration</th>
+                        <th><i class="fas fa-list-ol"></i> Page</th>
+                        <th><i class="fas fa-traffic-light"></i> Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for session in active_sessions %}
+                    <tr class="{% if session.Status == 'Expired' %}table-danger{% endif %}">
+                        <td><span class="badge bg-secondary">{{ session.id }}</span></td>
+                        <td>
+                            <i class="fas fa-user text-primary"></i>
+                            <strong>{{ session.UserName }}</strong>
+                        </td>
+                        <td>{{ session.TestName }}</td>
+                        <td>
+                            <small>
+                                {% if session.StartTime %}
+                                {{ session.StartTime.split(' ')[0] }}<br>
+                                {{ session.StartTime.split(' ')[1][:8] }}
+                                {% else %}
+                                --
+                                {% endif %}
+                            </small>
+                        </td>
+                        <td>
+                            <span class="badge bg-info">{{ session.TimeDuration or 0 }}m</span>
+                        </td>
+                        <td>
+                            <span class="badge bg-primary">{{ session.CurrentPage or 1 }}</span>
+                        </td>
+                        <td>
+                            <span class="badge bg-{{ 'success' if session.Status == 'Active' else 'danger' }}">
+                                <i class="fas fa-{{ 'play' if session.Status == 'Active' else 'exclamation-triangle' }}"></i>
+                                {{ session.Status }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center text-muted py-4">
+            <i class="fas fa-sleep fa-3x mb-3"></i>
+            <h5>No Active Sessions</h5>
+            <p>No users are currently taking tests.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- User Response Statistics with Scrolling -->
+<div class="card mb-4">
+    <div class="card-header bg-success text-white">
+        <h4><i class="fas fa-chart-bar"></i> User Response Statistics (Last 100)</h4>
+    </div>
+    <div class="card-body p-0">
+        {% if response_stats %}
+        <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+            <table class="table table-hover table-sm mb-0">
+                <thead class="table-dark sticky-top">
+                    <tr>
+                        <th><i class="fas fa-user"></i> User</th>
+                        <th><i class="fas fa-file-alt"></i> Test</th>
+                        <th><i class="fas fa-check-square"></i> Total Responses</th>
+                        <th><i class="fas fa-bookmark"></i> Marked Questions</th>
+                        <th><i class="fas fa-calendar"></i> Last Attempt</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for stat in response_stats %}
+                    <tr>
+                        <td>
+                            <i class="fas fa-user text-primary"></i>
+                            <strong>{{ stat.UserName }}</strong>
+                        </td>
+                        <td>{{ stat.TestName }}</td>
+                        <td>
+                            <span class="badge bg-primary">{{ stat.TotalResponses }}</span>
+                        </td>
+                        <td>
+                            <span class="badge bg-warning">{{ stat.MarkedQuestions or 0 }}</span>
+                        </td>
+                        <td>
+                            <small>
+                                {% if stat.LastAttempt %}
+                                {{ stat.LastAttempt.split(' ')[0] }}<br>
+                                {{ stat.LastAttempt.split(' ')[1][:8] }}
+                                {% else %}
+                                --
+                                {% endif %}
+                            </small>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center text-muted py-4">
+            <i class="fas fa-chart-bar fa-3x mb-3"></i>
+            <h5>No Response Data</h5>
+            <p>No user responses recorded yet.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- User Login Sessions with Scrolling -->
+<div class="card mb-4">
+    <div class="card-header bg-info text-white">
+        <h4><i class="fas fa-sign-in-alt"></i> Recent Login Sessions (Last 100)</h4>
+    </div>
+    <div class="card-body p-0">
+        {% if login_sessions %}
+        <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+            <table class="table table-hover table-sm mb-0">
+                <thead class="table-dark sticky-top">
+                    <tr>
+                        <th><i class="fas fa-hashtag"></i> ID</th>
+                        <th><i class="fas fa-user"></i> User</th>
+                        <th><i class="fas fa-network-wired"></i> IPAddress</th>
+                        <th><i class="fas fa-globe"></i> Browser</th>
+                        <th><i class="fas fa-clock"></i> Login Time</th>
+                        <th><i class="fas fa-circle"></i> Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for session in login_sessions %}
+                    <tr class="{% if not session.IsActive %}table-secondary{% endif %}">
+                        <td><span class="badge bg-secondary">{{ session.id }}</span></td>
+                        <td>
+                            <i class="fas fa-user text-primary"></i>
+                            <strong>{{ session.UserName or 'Unknown' }}</strong>
+                        </td>
+                        <td>
+                            <code>{{ session.IPAddress or 'Unknown' }}</code>
+                        </td>
+                        <td>
+                            <small>{{ (session.UserAgent or 'Unknown')[:30] }}{% if session.UserAgent and session.UserAgent|length > 30 %}...{% endif %}</small>
+                        </td>
+                        <td>
+                            <small>
+                                {% if session.LoginTime %}
+                                {{ session.LoginTime.split(' ')[0] }}<br>
+                                {{ session.LoginTime.split(' ')[1][:8] }}
+                                {% else %}
+                                --
+                                {% endif %}
+                            </small>
+                        </td>
+                        <td>
+                            {% if session.IsActive %}
+                                <span class="badge bg-success">
+                                    <i class="fas fa-circle"></i> Active
+                                </span>
+                            {% else %}
+                                <span class="badge bg-secondary">
+                                    <i class="fas fa-circle"></i> Inactive
+                                </span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center text-muted py-4">
+            <i class="fas fa-sign-in-alt fa-3x mb-3"></i>
+            <h5>No Login Sessions</h5>
+            <p>No login activity recorded.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+/* Custom scrollbar for better UX */
+.table-responsive::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover {
+    background: #a1a1a1;
+}
+
+/* Ensure sticky headers work properly */
+.sticky-top {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+</style>
+
+<script>
+// Update current time
+function updateCurrentTime() {
+    const now = new Date();
+    const timeString = now.toLocaleTimeString('en-US', { 
+        hour12: false, 
+        hour: '2-digit', 
+        minute: '2-digit' 
+    });
+    document.getElementById('currentTime').textContent = timeString;
+}
+
+// Update time every second
+updateCurrentTime();
+setInterval(updateCurrentTime, 1000);
+
+// Auto-refresh page every 60 seconds to show latest data (increased from 30s due to pagination)
+setTimeout(() => {
+    window.location.reload();
+}, 60000);
+</script>
+
+{% endblock %} 
+
+{% block extra_js %}
+<script>
+// Clear login sessions function
+function clearLoginSessions() {
+    const password = prompt("Enter admin password to clear login sessions:");
+    if (password === null) return; // User cancelled
+    
+    if (password.trim() === '') {
+        alert('Password is required');
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('admin_password', password);
+    
+    fetch('/admin/clear-transactions', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            location.reload();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while clearing sessions');
+    });
+}
+</script>
+{% endblock %} 
+
+<!-- Footer -->
+

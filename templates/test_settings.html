@@ -1,0 +1,1330 @@
+{% extends "base.html" %}
+
+{% block title %}Test Settings - IngiTest_v1{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-cogs"></i> Test Settings</h2>
+    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Back to Dashboard
+    </a>
+</div>
+
+<!-- Current Test Info -->
+{% if test_info %}
+<div class="card mb-4">
+    <div class="card-header bg-info text-white">
+        <h4><i class="fas fa-info-circle"></i> Current Test: {{ test_info.TestName }}</h4>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4">
+                <strong>Total Questions:</strong> {{ test_info.NumberTestQuestions }}
+            </div>
+            <div class="col-md-4">
+                <strong>Duration:</strong> {{ test_info.TimeDuration }} minutes
+            </div>
+            <div class="col-md-4">
+                <strong>Questions Added:</strong> {{ questions|length }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Question Management Actions -->
+<div class="card mb-4">
+    <div class="card-header bg-warning text-dark">
+        <h5><i class="fas fa-tools"></i> Question Management Tools</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <h6><i class="fas fa-sort-numeric-down"></i> Renumber Questions</h6>
+                <p class="text-muted">Fix gaps in question numbering caused by permanent deletions</p>
+                <button type="button" class="btn btn-warning" onclick="renumberQuestions()">
+                    <i class="fas fa-sort-numeric-down"></i> Renumber Questions in Current Test
+                </button>
+            </div>
+            <div class="col-md-6">
+                <h6><i class="fas fa-info-circle"></i> Information</h6>
+                <p class="text-muted">Use renumbering after permanently deleting questions to ensure sequential numbering.</p>
+                <small class="text-info">
+                    <i class="fas fa-lightbulb"></i> This will renumber questions in the current test only.
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add New Question -->
+<div class="card mb-4">
+    <div class="card-header bg-success text-white">
+        <h4><i class="fas fa-plus"></i> Add New Question</h4>
+    </div>
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('add_question') }}" enctype="multipart/form-data">
+            <div class="mb-3">
+                <label for="question" class="form-label">
+                    <i class="fas fa-question-circle"></i> Question (HTML Supported)
+                </label>
+                <div id="question-editor" style="height: 200px;"></div>
+                <textarea class="form-control d-none" id="question" name="question" required></textarea>
+                <div class="form-text">
+                    <small><i class="fas fa-info-circle"></i> You can format text, add bold, italic, colors, and refer to uploaded images.</small>
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label for="question_image" class="form-label">
+                    <i class="fas fa-image"></i> Question Image (Optional)
+                </label>
+                <input type="file" class="form-control" id="question_image" name="question_image" accept="image/*">
+                <div class="form-text">
+                    <small><i class="fas fa-info-circle"></i> Upload an image to support your question. Supported formats: PNG, JPG, JPEG, GIF, BMP, WebP (Max: 16MB)</small>
+                </div>
+                <div id="image-preview" class="mt-2"></div>
+            </div>
+            
+            <!-- True/False Question Type Indicator -->
+            <div class="mb-4">
+                <div class="card border-info">
+                    <div class="card-body">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" role="switch" 
+                                   id="trueFalseIndicator" name="true_false_indicator" 
+                                   onchange="toggleQuestionType()">
+                            <label class="form-check-label" for="trueFalseIndicator">
+                                <i class="fas fa-toggle-on"></i> <strong>True/False Question Type</strong>
+                            </label>
+                        </div>
+                        <div class="form-text">
+                            <small><i class="fas fa-info-circle"></i> Enable for True/False questions (shows only 2 options). Disable for multiple choice questions (shows 4+ options).</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="answer1" class="form-label">
+                            <i class="fas fa-circle"></i> Option A (HTML Supported)
+                        </label>
+                        <div id="answer1-editor" style="height: 150px;"></div>
+                        <textarea class="form-control d-none" id="answer1" name="answer1" required></textarea>
+                        <div class="form-text">
+                            <small><i class="fas fa-info-circle"></i> You can format text, add bold, italic, colors.</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="answer2" class="form-label">
+                            <i class="fas fa-circle"></i> Option B (HTML Supported)
+                        </label>
+                        <div id="answer2-editor" style="height: 150px;"></div>
+                        <textarea class="form-control d-none" id="answer2" name="answer2" required></textarea>
+                        <div class="form-text">
+                            <small><i class="fas fa-info-circle"></i> You can format text, add bold, italic, colors.</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6" id="optionCContainer">
+                    <div class="mb-3">
+                        <label for="answer3" class="form-label">
+                            <i class="fas fa-circle"></i> Option C (HTML Supported)
+                        </label>
+                        <div id="answer3-editor" style="height: 150px;"></div>
+                        <textarea class="form-control d-none" id="answer3" name="answer3" required></textarea>
+                        <div class="form-text">
+                            <small><i class="fas fa-info-circle"></i> You can format text, add bold, italic, colors.</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6" id="optionDContainer">
+                    <div class="mb-3">
+                        <label for="answer4" class="form-label">
+                            <i class="fas fa-circle"></i> Option D (HTML Supported)
+                        </label>
+                        <div id="answer4-editor" style="height: 150px;"></div>
+                        <textarea class="form-control d-none" id="answer4" name="answer4" required></textarea>
+                        <div class="form-text">
+                            <small><i class="fas fa-info-circle"></i> You can format text, add bold, italic, colors.</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Option E Toggle Section -->
+                <div class="col-12" id="optionEToggleContainer">
+                    <div class="mb-3">
+                        <button type="button" class="btn btn-outline-info btn-sm" id="toggleOptionE" onclick="toggleOptionE()">
+                            <i class="fas fa-plus-circle"></i> <span id="toggleText">Add Option E</span>
+                        </button>
+                        <small class="text-muted ms-2">Click to add a fifth option to this question</small>
+                    </div>
+                </div>
+                
+                <!-- Option E Field (Hidden by default) -->
+                <div class="col-md-6 d-none" id="optionEContainer">
+                    <div class="mb-3">
+                        <label for="answer5" class="form-label">
+                            <i class="fas fa-circle"></i> Option E (HTML Supported)
+                        </label>
+                        <div id="answer5-editor" style="height: 150px;"></div>
+                        <textarea class="form-control d-none" id="answer5" name="answer5"></textarea>
+                        <div class="form-text">
+                            <small><i class="fas fa-info-circle"></i> You can format text, add bold, italic, colors.</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label for="correct_answer" class="form-label">
+                    <i class="fas fa-check-circle"></i> Correct Answer
+                </label>
+                <select class="form-control" id="correct_answer" name="correct_answer" required>
+                    <option value="">Select the correct answer</option>
+                    <option value="1" id="optionADropdown">Option A</option>
+                    <option value="2" id="optionBDropdown">Option B</option>
+                    <option value="3" id="optionCDropdown">Option C</option>
+                    <option value="4" id="optionDDropdown">Option D</option>
+                    <option value="5" id="optionEDropdown" class="d-none">Option E</option>
+                </select>
+            </div>
+            
+            <button type="submit" class="btn btn-success">
+                <i class="fas fa-plus"></i> Add Question
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Questions List -->
+<div class="card">
+    <div class="card-header bg-primary text-white">
+        <h4><i class="fas fa-list"></i> Questions ({{ questions|length }})</h4>
+    </div>
+    <div class="card-body">
+        {% if questions %}
+        {% for question in questions %}
+        <div class="card mb-3 question-card {% if question.IsActive == 0 %}border-danger{% endif %}" 
+             data-question-id="{{ question.id }}" 
+             data-question-text="{{ question.Question|e }}"
+             data-answer1="{{ question.Answer1|e }}"
+             data-answer2="{{ question.Answer2|e }}"
+             data-answer3="{{ question.Answer3|e }}"
+             data-answer4="{{ question.Answer4|e }}"
+             data-answer5="{{ question.Answer5|e if question.Answer5 else '' }}"
+             data-correct-answer="{{ question.CorrectAnswer }}">
+            <div class="card-header">
+                <h6>
+                    <i class="fas fa-question-circle"></i> Question {{ question.QuestionNumber }}
+                    <span class="badge bg-success ms-2">
+                        {% if is_true_false %}
+                            Correct: {{ 'True' if question.CorrectAnswer == 1 else 'False' }}
+                        {% else %}
+                        Correct: Option {{ ['A', 'B', 'C', 'D', 'E'][question.CorrectAnswer - 1] }}
+                        {% endif %}
+                    </span>
+                    {% if question.IsActive == 0 %}
+                    <span class="badge bg-danger ms-2">
+                        <i class="fas fa-eye-slash"></i> Disabled
+                    </span>
+                    {% endif %}
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-flex flex-column">
+                    <p class="fw-bold mb-3">{{ question.Question|safe }}</p>
+                    
+                    {% if question.ImageFilename %}
+                    <div class="mb-3">
+                        <img src="{{ url_for('uploaded_file', filename=question.ImageFilename) }}" 
+                             class="img-fluid rounded shadow-sm" 
+                             style="max-width: 400px; max-height: 300px;"
+                             alt="Question Image">
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Check if this is a True/False question (Answer3 and Answer4 are empty/null) -->
+                {% set is_true_false = not (question.Answer3 and question.Answer3.strip() and question.Answer3|replace('<p>', '')|replace('</p>', '')|replace('<br>', '')|replace(' ', '')|replace('&nbsp;', '')) and not (question.Answer4 and question.Answer4.strip() and question.Answer4|replace('<p>', '')|replace('</p>', '')|replace('<br>', '')|replace(' ', '')|replace('&nbsp;', '')) %}
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="answer-option {% if question.CorrectAnswer == 1 %}bg-success text-white{% endif %}">
+                            {% if is_true_false %}
+                                <strong><i class="fas fa-check text-success"></i> True:</strong> {{ question.Answer1|safe }}
+                            {% else %}
+                            <strong>A.</strong> {{ question.Answer1|safe }}
+                            {% endif %}
+                        </div>
+                        <div class="answer-option {% if question.CorrectAnswer == 2 %}bg-success text-white{% endif %}">
+                            {% if is_true_false %}
+                                <strong><i class="fas fa-times text-danger"></i> False:</strong> {{ question.Answer2|safe }}
+                            {% else %}
+                            <strong>B.</strong> {{ question.Answer2|safe }}
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Only show Options C and D for Multiple Choice questions -->
+                    {% if not is_true_false %}
+                    <div class="col-md-6">
+                        <div class="answer-option {% if question.CorrectAnswer == 3 %}bg-success text-white{% endif %}">
+                            <strong>C.</strong> {{ question.Answer3|safe }}
+                        </div>
+                        <div class="answer-option {% if question.CorrectAnswer == 4 %}bg-success text-white{% endif %}">
+                            <strong>D.</strong> {{ question.Answer4|safe }}
+                        </div>
+                        {% if question.Answer5 and question.Answer5.strip() and question.Answer5|replace('<p>', '')|replace('</p>', '')|replace('<br>', '')|replace(' ', '')|replace('&nbsp;', '') %}
+                        <div class="answer-option {% if question.CorrectAnswer == 5 %}bg-success text-white{% endif %}">
+                            <strong>E.</strong> {{ question.Answer5|safe }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Edit Question Buttons -->
+                <div class="mt-3">
+                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="editQuestion({{ question.id }})">
+                        <i class="fas fa-edit"></i> Edit Question
+                    </button>
+                    {% if question.IsActive == 1 %}
+                    <button type="button" class="btn btn-outline-warning btn-sm ms-2" onclick="disableQuestion({{ question.id }})">
+                        <i class="fas fa-eye-slash"></i> Disable Question
+                    </button>
+                    {% else %}
+                    <button type="button" class="btn btn-outline-success btn-sm ms-2" onclick="enableQuestion({{ question.id }})">
+                        <i class="fas fa-eye"></i> Enable Question
+                    </button>
+                    {% endif %}
+                    <button type="button" class="btn btn-outline-danger btn-sm ms-2" onclick="deleteQuestion({{ question.id }})">
+                        <i class="fas fa-trash"></i> Delete Question
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="text-center text-muted py-4">
+            <i class="fas fa-question-circle fa-3x mb-3"></i>
+            <h5>No questions added yet</h5>
+            <p>Add questions above to build your test. Each question should have 4 options with one correct answer.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% if questions and test_info %}
+<div class="alert alert-warning mt-4">
+    <h5><i class="fas fa-exclamation-triangle"></i> Important Notes</h5>
+    <ul class="mb-0">
+        <li>You have added {{ questions|length }} questions</li>
+        <li>Test is configured for {{ test_info.NumberTestQuestions }} questions</li>
+        {% if questions|length < test_info.NumberTestQuestions %}
+        <li class="text-danger">⚠️ You need {{ test_info.NumberTestQuestions - questions|length }} more questions to complete the test setup</li>
+        {% elif questions|length >= test_info.NumberTestQuestions %}
+        <li class="text-success">✅ You have enough questions for the test</li>
+        {% endif %}
+    </ul>
+</div>
+{% endif %}
+
+<!-- Edit Question Modal -->
+<div class="modal fade" id="editQuestionModal" tabindex="-1" aria-labelledby="editQuestionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editQuestionModalLabel">
+                    <i class="fas fa-edit"></i> Edit Question
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="editQuestionForm" method="POST" action="">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="edit_question" class="form-label">Question (HTML Supported)</label>
+                        <div id="edit-question-editor" style="height: 200px;"></div>
+                        <textarea class="form-control d-none" id="edit_question" name="question" required></textarea>
+                        <div class="form-text">
+                            <small><i class="fas fa-info-circle"></i> You can format text, add bold, italic, colors.</small>
+                        </div>
+                    </div>
+                    
+                    <!-- True/False Question Type Indicator -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="1" 
+                                           id="editTrueFalseIndicator" name="edit_true_false_indicator" 
+                                           onchange="toggleEditQuestionType()">
+                                    <label class="form-check-label" for="editTrueFalseIndicator">
+                                        <i class="fas fa-toggle-on"></i> <strong>True/False Question Type</strong>
+                                    </label>
+                            </div>
+                                <div class="form-text">
+                                    <small><i class="fas fa-info-circle"></i> Enable for True/False questions (shows only 2 options). Disable for multiple choice questions (shows 4+ options).</small>
+                        </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="edit_answer1" class="form-label">Option A (HTML Supported)</label>
+                                <div id="edit-answer1-editor" style="height: 120px;"></div>
+                                <textarea class="form-control d-none" id="edit_answer1" name="answer1" required></textarea>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="edit_answer2" class="form-label">Option B (HTML Supported)</label>
+                                <div id="edit-answer2-editor" style="height: 120px;"></div>
+                                <textarea class="form-control d-none" id="edit_answer2" name="answer2" required></textarea>
+                            </div>
+                        </div>
+                        <div class="col-md-6" id="editAnswer3Container">
+                            <div class="mb-3">
+                                <label for="edit_answer3" class="form-label">Option C (HTML Supported)</label>
+                                <div id="edit-answer3-editor" style="height: 120px;"></div>
+                                <textarea class="form-control d-none" id="edit_answer3" name="answer3" required></textarea>
+                            </div>
+                        </div>
+                        <div class="col-md-6" id="editAnswer4Container">
+                            <div class="mb-3">
+                                <label for="edit_answer4" class="form-label">Option D (HTML Supported)</label>
+                                <div id="edit-answer4-editor" style="height: 120px;"></div>
+                                <textarea class="form-control d-none" id="edit_answer4" name="answer4" required></textarea>
+                            </div>
+                        </div>
+                        
+                        <!-- Option E Toggle Section -->
+                        <div class="col-12" id="editOptionEToggleContainer">
+                            <div class="mb-3">
+                                <button type="button" class="btn btn-outline-info btn-sm" id="editToggleOptionE" onclick="toggleEditOptionE()">
+                                    <i class="fas fa-plus-circle"></i> <span id="editToggleText">Add Option E</span>
+                                </button>
+                                <small class="text-muted ms-2">Click to add a fifth option to this question</small>
+                            </div>
+                        </div>
+                        
+                        <!-- Option E Field (Hidden by default) -->
+                        <div class="col-md-6 d-none" id="editAnswer5Container">
+                            <div class="mb-3">
+                                <label for="edit_answer5" class="form-label">Option E (HTML Supported)</label>
+                                <div id="edit-answer5-editor" style="height: 120px;"></div>
+                                <textarea class="form-control d-none" id="edit_answer5" name="answer5"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="edit_correct_answer" class="form-label">Correct Answer</label>
+                        <select class="form-control" id="edit_correct_answer" name="correct_answer" required>
+                            <option value="">Select the correct answer</option>
+                            <option value="1" id="editOptionADropdown">Option A</option>
+                            <option value="2" id="editOptionBDropdown">Option B</option>
+                            <option value="3" id="editOptionCDropdown">Option C</option>
+                            <option value="4" id="editOptionDDropdown">Option D</option>
+                            <option value="5" id="editOptionEDropdown" class="d-none">Option E</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Rich Text Editor Styles and Scripts -->
+<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+<script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+
+<script>
+// Initialize Quill editor
+var quill = new Quill('#question-editor', {
+    theme: 'snow',
+    placeholder: 'Enter your question here. You can use formatting, colors, and refer to uploaded images...',
+    modules: {
+        toolbar: [
+            [{ 'header': [1, 2, 3, false] }],
+            ['bold', 'italic', 'underline', 'strike'],
+            [{ 'color': [] }, { 'background': [] }],
+            [{ 'font': [] }],
+            [{ 'align': [] }],
+            ['blockquote', 'code-block'],
+            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+            [{ 'indent': '-1'}, { 'indent': '+1' }],
+            ['link', 'image', 'video'],
+            ['clean']
+        ]
+    }
+});
+
+// Sync Quill content with hidden textarea
+quill.on('text-change', function() {
+    document.getElementById('question').value = quill.root.innerHTML;
+});
+
+// Initialize Quill editors for answer options
+var answer1Quill = new Quill('#answer1-editor', {
+    theme: 'snow',
+    placeholder: 'Enter option A here. You can use formatting, colors...',
+    modules: {
+        toolbar: [
+            [{ 'header': [1, 2, 3, false] }],
+            ['bold', 'italic', 'underline', 'strike'],
+            [{ 'color': [] }, { 'background': [] }],
+            [{ 'font': [] }],
+            [{ 'align': [] }],
+            ['blockquote', 'code-block'],
+            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+            [{ 'indent': '-1'}, { 'indent': '+1' }],
+            ['link', 'image', 'video'],
+            ['clean']
+        ]
+    }
+});
+
+var answer2Quill = new Quill('#answer2-editor', {
+    theme: 'snow',
+    placeholder: 'Enter option B here. You can use formatting, colors...',
+    modules: {
+        toolbar: [
+            [{ 'header': [1, 2, 3, false] }],
+            ['bold', 'italic', 'underline', 'strike'],
+            [{ 'color': [] }, { 'background': [] }],
+            [{ 'font': [] }],
+            [{ 'align': [] }],
+            ['blockquote', 'code-block'],
+            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+            [{ 'indent': '-1'}, { 'indent': '+1' }],
+            ['link', 'image', 'video'],
+            ['clean']
+        ]
+    }
+});
+
+var answer3Quill = new Quill('#answer3-editor', {
+    theme: 'snow',
+    placeholder: 'Enter option C here. You can use formatting, colors...',
+    modules: {
+        toolbar: [
+            [{ 'header': [1, 2, 3, false] }],
+            ['bold', 'italic', 'underline', 'strike'],
+            [{ 'color': [] }, { 'background': [] }],
+            [{ 'font': [] }],
+            [{ 'align': [] }],
+            ['blockquote', 'code-block'],
+            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+            [{ 'indent': '-1'}, { 'indent': '+1' }],
+            ['link', 'image', 'video'],
+            ['clean']
+        ]
+    }
+});
+
+var answer4Quill = new Quill('#answer4-editor', {
+    theme: 'snow',
+    placeholder: 'Enter option D here. You can use formatting, colors...',
+    modules: {
+        toolbar: [
+            [{ 'header': [1, 2, 3, false] }],
+            ['bold', 'italic', 'underline', 'strike'],
+            [{ 'color': [] }, { 'background': [] }],
+            [{ 'font': [] }],
+            [{ 'align': [] }],
+            ['blockquote', 'code-block'],
+            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+            [{ 'indent': '-1'}, { 'indent': '+1' }],
+            ['link', 'image', 'video'],
+            ['clean']
+        ]
+    }
+});
+
+var answer5Quill = new Quill('#answer5-editor', {
+    theme: 'snow',
+    placeholder: 'Enter option E here. You can use formatting, colors...',
+    modules: {
+        toolbar: [
+            [{ 'header': [1, 2, 3, false] }],
+            ['bold', 'italic', 'underline', 'strike'],
+            [{ 'color': [] }, { 'background': [] }],
+            [{ 'font': [] }],
+            [{ 'align': [] }],
+            ['blockquote', 'code-block'],
+            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+            [{ 'indent': '-1'}, { 'indent': '+1' }],
+            ['link', 'image', 'video'],
+            ['clean']
+        ]
+    }
+});
+
+// Sync answer editors with hidden textareas
+answer1Quill.on('text-change', function() {
+    document.getElementById('answer1').value = answer1Quill.root.innerHTML;
+});
+answer2Quill.on('text-change', function() {
+    document.getElementById('answer2').value = answer2Quill.root.innerHTML;
+});
+answer3Quill.on('text-change', function() {
+    document.getElementById('answer3').value = answer3Quill.root.innerHTML;
+});
+answer4Quill.on('text-change', function() {
+    document.getElementById('answer4').value = answer4Quill.root.innerHTML;
+});
+answer5Quill.on('text-change', function() {
+    document.getElementById('answer5').value = answer5Quill.root.innerHTML;
+});
+
+// Initialize Quill editors for Edit Modal
+var editQuestionQuill = new Quill('#edit-question-editor', {
+    theme: 'snow',
+    placeholder: 'Enter your question here. You can use formatting, colors...',
+    modules: {
+        toolbar: [
+            [{ 'header': [1, 2, 3, false] }],
+            ['bold', 'italic', 'underline', 'strike'],
+            [{ 'color': [] }, { 'background': [] }],
+            [{ 'font': [] }],
+            [{ 'align': [] }],
+            ['blockquote', 'code-block'],
+            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+            [{ 'indent': '-1'}, { 'indent': '+1' }],
+            ['link', 'image', 'video'],
+            ['clean']
+        ]
+    }
+});
+
+var editAnswer1Quill = new Quill('#edit-answer1-editor', {
+    theme: 'snow',
+    placeholder: 'Enter option A here. You can use formatting, colors...',
+    modules: {
+        toolbar: [
+            ['bold', 'italic', 'underline', 'strike'],
+            [{ 'color': [] }, { 'background': [] }],
+            [{ 'font': [] }],
+            [{ 'align': [] }],
+            ['blockquote', 'code-block'],
+            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+            ['link', 'image'],
+            ['clean']
+        ]
+    }
+});
+
+var editAnswer2Quill = new Quill('#edit-answer2-editor', {
+    theme: 'snow',
+    placeholder: 'Enter option B here. You can use formatting, colors...',
+    modules: {
+        toolbar: [
+            ['bold', 'italic', 'underline', 'strike'],
+            [{ 'color': [] }, { 'background': [] }],
+            [{ 'font': [] }],
+            [{ 'align': [] }],
+            ['blockquote', 'code-block'],
+            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+            ['link', 'image'],
+            ['clean']
+        ]
+    }
+});
+
+var editAnswer3Quill = new Quill('#edit-answer3-editor', {
+    theme: 'snow',
+    placeholder: 'Enter option C here. You can use formatting, colors...',
+    modules: {
+        toolbar: [
+            ['bold', 'italic', 'underline', 'strike'],
+            [{ 'color': [] }, { 'background': [] }],
+            [{ 'font': [] }],
+            [{ 'align': [] }],
+            ['blockquote', 'code-block'],
+            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+            ['link', 'image'],
+            ['clean']
+        ]
+    }
+});
+
+var editAnswer4Quill = new Quill('#edit-answer4-editor', {
+    theme: 'snow',
+    placeholder: 'Enter option D here. You can use formatting, colors...',
+    modules: {
+        toolbar: [
+            ['bold', 'italic', 'underline', 'strike'],
+            [{ 'color': [] }, { 'background': [] }],
+            [{ 'font': [] }],
+            [{ 'align': [] }],
+            ['blockquote', 'code-block'],
+            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+            ['link', 'image'],
+            ['clean']
+        ]
+    }
+});
+
+var editAnswer5Quill = new Quill('#edit-answer5-editor', {
+    theme: 'snow',
+    placeholder: 'Enter option E here. You can use formatting, colors...',
+    modules: {
+        toolbar: [
+            ['bold', 'italic', 'underline', 'strike'],
+            [{ 'color': [] }, { 'background': [] }],
+            [{ 'font': [] }],
+            [{ 'align': [] }],
+            ['blockquote', 'code-block'],
+            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+            ['link', 'image'],
+            ['clean']
+        ]
+    }
+});
+
+// Sync edit modal Quill editors with hidden textareas
+editQuestionQuill.on('text-change', function() {
+    document.getElementById('edit_question').value = editQuestionQuill.root.innerHTML;
+});
+editAnswer1Quill.on('text-change', function() {
+    document.getElementById('edit_answer1').value = editAnswer1Quill.root.innerHTML;
+});
+editAnswer2Quill.on('text-change', function() {
+    document.getElementById('edit_answer2').value = editAnswer2Quill.root.innerHTML;
+});
+editAnswer3Quill.on('text-change', function() {
+    document.getElementById('edit_answer3').value = editAnswer3Quill.root.innerHTML;
+});
+editAnswer4Quill.on('text-change', function() {
+    document.getElementById('edit_answer4').value = editAnswer4Quill.root.innerHTML;
+});
+editAnswer5Quill.on('text-change', function() {
+    document.getElementById('edit_answer5').value = editAnswer5Quill.root.innerHTML;
+});
+
+// Image preview functionality
+document.getElementById('question_image').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    const previewDiv = document.getElementById('image-preview');
+    
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            previewDiv.innerHTML = `
+                <div class="card" style="max-width: 300px;">
+                    <div class="card-header bg-info text-white">
+                        <small><i class="fas fa-eye"></i> Image Preview</small>
+                    </div>
+                    <div class="card-body p-2">
+                        <img src="${e.target.result}" class="img-fluid" alt="Question Image Preview">
+                        <small class="d-block mt-1 text-muted">${file.name}</small>
+                    </div>
+                </div>
+            `;
+        };
+        reader.readAsDataURL(file);
+    } else {
+        previewDiv.innerHTML = '';
+    }
+});
+
+// Form submission handler
+document.querySelector('form').addEventListener('submit', function() {
+    // Ensure Quill content is synced to textareas
+    document.getElementById('question').value = quill.root.innerHTML;
+    document.getElementById('answer1').value = answer1Quill.root.innerHTML;
+    document.getElementById('answer2').value = answer2Quill.root.innerHTML;
+    
+    const trueFalseIndicator = document.getElementById('trueFalseIndicator');
+    
+    if (trueFalseIndicator && trueFalseIndicator.checked) {
+        // True/False mode: clear options C, D, E
+        document.getElementById('answer3').value = '';
+        document.getElementById('answer4').value = '';
+        document.getElementById('answer5').value = '';
+    } else {
+        // Multiple choice mode: sync all relevant options
+    document.getElementById('answer3').value = answer3Quill.root.innerHTML;
+    document.getElementById('answer4').value = answer4Quill.root.innerHTML;
+    
+    // Only sync Answer5 if Option E is visible (not hidden)
+    const optionEContainer = document.getElementById('optionEContainer');
+    if (optionEContainer && !optionEContainer.classList.contains('d-none')) {
+        document.getElementById('answer5').value = answer5Quill.root.innerHTML;
+    } else {
+        // Clear Answer5 if Option E is hidden
+        document.getElementById('answer5').value = '';
+    }
+    }
+});
+
+// Edit Question Form submission handler
+document.getElementById('editQuestionForm').addEventListener('submit', function() {
+    // Ensure Quill content is synced to textareas for edit form
+    document.getElementById('edit_question').value = editQuestionQuill.root.innerHTML;
+    document.getElementById('edit_answer1').value = editAnswer1Quill.root.innerHTML;
+    document.getElementById('edit_answer2').value = editAnswer2Quill.root.innerHTML;
+    
+    const editTrueFalseIndicator = document.getElementById('editTrueFalseIndicator');
+    
+    if (editTrueFalseIndicator && editTrueFalseIndicator.checked) {
+        // True/False mode: clear options C, D, E
+        document.getElementById('edit_answer3').value = '';
+        document.getElementById('edit_answer4').value = '';
+        document.getElementById('edit_answer5').value = '';
+    } else {
+        // Multiple choice mode: sync all relevant options
+        document.getElementById('edit_answer3').value = editAnswer3Quill.root.innerHTML;
+        document.getElementById('edit_answer4').value = editAnswer4Quill.root.innerHTML;
+        
+        // Only sync Answer5 if Option E is visible (not hidden)
+        const editOptionEContainer = document.getElementById('editAnswer5Container');
+        if (editOptionEContainer && !editOptionEContainer.classList.contains('d-none')) {
+            document.getElementById('edit_answer5').value = editAnswer5Quill.root.innerHTML;
+        } else {
+            // Clear Answer5 if Option E is hidden
+            document.getElementById('edit_answer5').value = '';
+        }
+    }
+});
+
+// True/False Question Type Toggle
+function toggleQuestionType() {
+    const trueFalseIndicator = document.getElementById('trueFalseIndicator');
+    const optionCContainer = document.getElementById('optionCContainer');
+    const optionDContainer = document.getElementById('optionDContainer');
+    const optionEContainer = document.getElementById('optionEContainer');
+    const optionEToggleContainer = document.getElementById('optionEToggleContainer');
+    
+    // Dropdown options
+    const optionCDropdown = document.getElementById('optionCDropdown');
+    const optionDDropdown = document.getElementById('optionDDropdown');
+    const optionEDropdown = document.getElementById('optionEDropdown');
+    
+    // Option labels
+    const optionALabel = document.querySelector('label[for="answer1"]');
+    const optionBLabel = document.querySelector('label[for="answer2"]');
+    
+    // Required attributes for answer fields
+    const answer3 = document.getElementById('answer3');
+    const answer4 = document.getElementById('answer4');
+    
+    if (trueFalseIndicator.checked) {
+        // True/False Mode: Show only A and B options
+        
+        // Hide Options C, D, E and the Add Option E button
+        if (optionCContainer) optionCContainer.style.display = 'none';
+        if (optionDContainer) optionDContainer.style.display = 'none';
+        if (optionEContainer) optionEContainer.classList.add('d-none');
+        if (optionEToggleContainer) optionEToggleContainer.style.display = 'none';
+        
+        // Hide C, D, E from dropdown
+        if (optionCDropdown) optionCDropdown.style.display = 'none';
+        if (optionDDropdown) optionDDropdown.style.display = 'none';
+        if (optionEDropdown) optionEDropdown.style.display = 'none';
+        
+        // Update labels to True/False
+        if (optionALabel) optionALabel.innerHTML = '<i class="fas fa-check"></i> True (HTML Supported)';
+        if (optionBLabel) optionBLabel.innerHTML = '<i class="fas fa-times"></i> False (HTML Supported)';
+        
+        // Remove required attribute from hidden options
+        if (answer3) answer3.removeAttribute('required');
+        if (answer4) answer4.removeAttribute('required');
+        
+        // Update dropdown options text
+        if (document.getElementById('optionADropdown')) document.getElementById('optionADropdown').textContent = 'True';
+        if (document.getElementById('optionBDropdown')) document.getElementById('optionBDropdown').textContent = 'False';
+        
+        // Clear current selection if it was C, D, or E
+        const correctAnswerSelect = document.getElementById('correct_answer');
+        if (correctAnswerSelect && (correctAnswerSelect.value === '3' || correctAnswerSelect.value === '4' || correctAnswerSelect.value === '5')) {
+            correctAnswerSelect.value = '';
+        }
+        
+        // Reset Option E toggle button if it was showing
+        const toggleButton = document.getElementById('toggleOptionE');
+        if (toggleButton && !optionEContainer.classList.contains('d-none')) {
+            toggleOptionE(); // This will hide Option E and reset the button
+        }
+        
+    } else {
+        // Multiple Choice Mode: Show all options
+        
+        // Show Options C, D and the Add Option E button
+        if (optionCContainer) optionCContainer.style.display = 'block';
+        if (optionDContainer) optionDContainer.style.display = 'block';
+        if (optionEToggleContainer) optionEToggleContainer.style.display = 'block';
+        
+        // Show C, D in dropdown
+        if (optionCDropdown) optionCDropdown.style.display = 'block';
+        if (optionDDropdown) optionDDropdown.style.display = 'block';
+        
+        // Restore labels to A, B, C, D
+        if (optionALabel) optionALabel.innerHTML = '<i class="fas fa-circle"></i> Option A (HTML Supported)';
+        if (optionBLabel) optionBLabel.innerHTML = '<i class="fas fa-circle"></i> Option B (HTML Supported)';
+        
+        // Add back required attribute
+        if (answer3) answer3.setAttribute('required', 'required');
+        if (answer4) answer4.setAttribute('required', 'required');
+        
+        // Restore dropdown options text
+        if (document.getElementById('optionADropdown')) document.getElementById('optionADropdown').textContent = 'Option A';
+        if (document.getElementById('optionBDropdown')) document.getElementById('optionBDropdown').textContent = 'Option B';
+    }
+}
+
+// Option E Toggle Functionality (Fix 3)
+function toggleOptionE() {
+    // Check if we're in True/False mode - if so, don't allow Option E
+    const trueFalseIndicator = document.getElementById('trueFalseIndicator');
+    if (trueFalseIndicator && trueFalseIndicator.checked) {
+        console.log('Option E toggle blocked - in True/False mode');
+        return;
+    }
+    
+    console.log('toggleOptionE called'); // Debug log
+    
+    const optionEContainer = document.getElementById('optionEContainer');
+    const optionEDropdown = document.getElementById('optionEDropdown');
+    const toggleButton = document.getElementById('toggleOptionE');
+    const answer5Input = document.getElementById('answer5');
+    
+    console.log('Elements found:', {
+        optionEContainer: !!optionEContainer,
+        optionEDropdown: !!optionEDropdown,
+        toggleButton: !!toggleButton,
+        answer5Input: !!answer5Input
+    });
+    
+    if (!optionEContainer || !optionEDropdown || !toggleButton || !answer5Input) {
+        console.error('Required elements not found');
+        return;
+    }
+    
+    if (optionEContainer.classList.contains('d-none')) {
+        // Show Option E
+        optionEContainer.classList.remove('d-none');
+        optionEDropdown.classList.remove('d-none');
+        optionEDropdown.style.display = 'block';
+        toggleButton.classList.remove('btn-outline-info');
+        toggleButton.classList.add('btn-outline-danger');
+        toggleButton.innerHTML = '<i class="fas fa-minus-circle"></i> <span id="toggleText">Remove Option E</span>';
+        answer5Input.focus();
+        console.log('Option E shown');
+    } else {
+        // Hide Option E
+        optionEContainer.classList.add('d-none');
+        optionEDropdown.classList.add('d-none');
+        optionEDropdown.style.display = 'none';
+        toggleButton.classList.remove('btn-outline-danger');
+        toggleButton.classList.add('btn-outline-info');
+        toggleButton.innerHTML = '<i class="fas fa-plus-circle"></i> <span id="toggleText">Add Option E</span>';
+        
+        // Clear the Option E input and reset dropdown if Option E was selected
+        answer5Input.value = '';
+        // Also clear the Quill editor content
+        if (typeof answer5Quill !== 'undefined') {
+            answer5Quill.setContents([]);
+        }
+        const correctAnswerSelect = document.getElementById('correct_answer');
+        if (correctAnswerSelect && correctAnswerSelect.value === '5') {
+            correctAnswerSelect.value = '';
+        }
+        console.log('Option E hidden');
+    }
+}
+
+// Renumber Questions Functionality
+function renumberQuestions() {
+    if (confirm('Are you sure you want to renumber questions in the current test?\n\nThis will:\n• Fix gaps in question numbering\n• Apply to current test only\n• Ensure sequential numbering (1, 2, 3...)\n\nThis action cannot be undone.')) {
+        fetch('/admin/renumber-questions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(`Success!\n\n${data.message}`);
+                location.reload();
+            } else {
+                alert('Error renumbering questions: ' + (data.message || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error renumbering questions. Please try again.');
+        });
+    }
+}
+
+// Fix Option E Toggle Issue (Enhanced)
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, initializing functionality...');
+    
+    // Initialize True/False functionality
+    const trueFalseIndicator = document.getElementById('trueFalseIndicator');
+    if (trueFalseIndicator) {
+        // Set initial state (multiple choice by default)
+        trueFalseIndicator.checked = false;
+        console.log('True/False indicator initialized');
+    }
+    
+    // Ensure Option E button works properly
+    const toggleButton = document.getElementById('toggleOptionE');
+    if (toggleButton) {
+        // Remove any existing event listeners and add a fresh one
+        toggleButton.removeEventListener('click', toggleOptionE);
+        toggleButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('Option E button clicked');
+            toggleOptionE();
+        });
+        console.log('Option E button initialized successfully');
+    } else {
+        console.error('Option E toggle button not found');
+    }
+    
+    // Add form submission handler for edit modal
+    const editForm = document.getElementById('editQuestionForm');
+    if (editForm) {
+        editForm.addEventListener('submit', function(e) {
+            // Sync all Quill editors to hidden textareas before submission
+            document.getElementById('edit_question').value = editQuestionQuill.root.innerHTML;
+            document.getElementById('edit_answer1').value = editAnswer1Quill.root.innerHTML;
+            document.getElementById('edit_answer2').value = editAnswer2Quill.root.innerHTML;
+            document.getElementById('edit_answer3').value = editAnswer3Quill.root.innerHTML;
+            document.getElementById('edit_answer4').value = editAnswer4Quill.root.innerHTML;
+            document.getElementById('edit_answer5').value = editAnswer5Quill.root.innerHTML;
+            
+            console.log('Edit form submitted with synced Quill content');
+        });
+        console.log('Edit form submission handler added');
+    }
+});
+
+// Edit Question Functionality
+function editQuestion(questionId) {
+    // Find the question data from the page using data attributes
+    const questionCard = document.querySelector(`[data-question-id="${questionId}"]`);
+    if (!questionCard) {
+        console.error('Question card not found for ID:', questionId);
+        return;
+    }
+    
+    // Get question data from data attributes
+    const questionText = questionCard.dataset.questionText;
+    const answer1 = questionCard.dataset.answer1;
+    const answer2 = questionCard.dataset.answer2;
+    const answer3 = questionCard.dataset.answer3;
+    const answer4 = questionCard.dataset.answer4;
+    const answer5 = questionCard.dataset.answer5;
+    const correctAnswer = questionCard.dataset.correctAnswer;
+    
+    // Check if this is a True/False question (based on empty Answer3 and Answer4)
+    const isTrueFalse = (!answer3 || !answer3.trim() || answer3.replace(/<[^>]*>/g, '').trim() === '') && 
+                        (!answer4 || !answer4.trim() || answer4.replace(/<[^>]*>/g, '').trim() === '');
+    
+    // Populate the Quill editors with HTML content
+    editQuestionQuill.root.innerHTML = questionText || '';
+    editAnswer1Quill.root.innerHTML = answer1 || '';
+    editAnswer2Quill.root.innerHTML = answer2 || '';
+    editAnswer3Quill.root.innerHTML = answer3 || '';
+    editAnswer4Quill.root.innerHTML = answer4 || '';
+    editAnswer5Quill.root.innerHTML = answer5 || '';
+    
+    // Set the True/False checkbox state
+    const editTrueFalseIndicator = document.getElementById('editTrueFalseIndicator');
+    editTrueFalseIndicator.checked = isTrueFalse;
+    
+    // Reset the modal to default state first
+    document.getElementById('editAnswer3Container').style.display = 'block';
+    document.getElementById('editAnswer4Container').style.display = 'block';
+    document.getElementById('editAnswer5Container').classList.add('d-none');
+    document.getElementById('editOptionEToggleContainer').style.display = 'block';
+    
+    // Reset Add Option E button
+    const editToggleButton = document.getElementById('editToggleOptionE');
+    editToggleButton.classList.remove('btn-outline-danger');
+    editToggleButton.classList.add('btn-outline-info');
+    editToggleButton.innerHTML = '<i class="fas fa-plus-circle"></i> <span id="editToggleText">Add Option E</span>';
+    
+    // Call the toggle function to set up the correct state
+    toggleEditQuestionType();
+    
+    // Handle Answer5 (Option E) - show if it has content
+    if (answer5 && answer5.trim() !== '' && answer5.replace(/<[^>]*>/g, '').trim() !== '') {
+        // Only show Option E if we're not in True/False mode
+        if (!isTrueFalse) {
+            toggleEditOptionE(); // This will show Option E and update the button
+        }
+    }
+    
+    // Set correct answer
+    document.getElementById('edit_correct_answer').value = correctAnswer;
+    
+    // Sync Quill content to hidden textareas
+    document.getElementById('edit_question').value = editQuestionQuill.root.innerHTML;
+    document.getElementById('edit_answer1').value = editAnswer1Quill.root.innerHTML;
+    document.getElementById('edit_answer2').value = editAnswer2Quill.root.innerHTML;
+    document.getElementById('edit_answer3').value = editAnswer3Quill.root.innerHTML;
+    document.getElementById('edit_answer4').value = editAnswer4Quill.root.innerHTML;
+    document.getElementById('edit_answer5').value = editAnswer5Quill.root.innerHTML;
+    
+    // Set form action
+    document.getElementById('editQuestionForm').action = `/admin/edit-question/${questionId}`;
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('editQuestionModal'));
+    modal.show();
+}
+
+// Disable Question Functionality
+function disableQuestion(questionId) {
+    if (confirm('Are you sure you want to disable this question? It will no longer appear in tests but will remain in the repository.')) {
+        // Create a form and submit for disabling
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/admin/delete-question/${questionId}`;
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+// Enable Question Functionality
+function enableQuestion(questionId) {
+    if (confirm('Are you sure you want to enable this question? It will appear in tests again.')) {
+        fetch(`/admin/enable-question/${questionId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error enabling question: ' + (data.message || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error enabling question. Please try again.');
+        });
+    }
+}
+
+function deleteQuestion(questionId) {
+    if (confirm('⚠️ PERMANENT DELETION WARNING!\n\nThis will permanently delete the question from the test repository.\n\nThis action CANNOT be undone!\n\nAre you absolutely sure you want to delete this question forever?')) {
+        fetch(`/admin/delete-question/${questionId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Question permanently deleted from repository.');
+                location.reload();
+            } else {
+                alert('Error deleting question: ' + (data.message || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error deleting question. Please try again.');
+        });
+    }
+}
+
+// Edit Modal: True/False Question Type Toggle
+function toggleEditQuestionType() {
+    const editTrueFalseIndicator = document.getElementById('editTrueFalseIndicator');
+    const editAnswer3Container = document.getElementById('editAnswer3Container');
+    const editAnswer4Container = document.getElementById('editAnswer4Container');
+    const editAnswer5Container = document.getElementById('editAnswer5Container');
+    const editOptionEToggleContainer = document.getElementById('editOptionEToggleContainer');
+    
+    // Dropdown options
+    const editOptionCDropdown = document.getElementById('editOptionCDropdown');
+    const editOptionDDropdown = document.getElementById('editOptionDDropdown');
+    const editOptionEDropdown = document.getElementById('editOptionEDropdown');
+    
+    // Option labels
+    const editOptionALabel = document.querySelector('label[for="edit_answer1"]');
+    const editOptionBLabel = document.querySelector('label[for="edit_answer2"]');
+    
+    // Required attributes for answer fields
+    const editAnswer3 = document.getElementById('edit_answer3');
+    const editAnswer4 = document.getElementById('edit_answer4');
+    
+    if (editTrueFalseIndicator.checked) {
+        // True/False Mode: Show only A and B options
+        
+        // Hide Options C, D, E and the Add Option E button
+        if (editAnswer3Container) editAnswer3Container.style.display = 'none';
+        if (editAnswer4Container) editAnswer4Container.style.display = 'none';
+        if (editAnswer5Container) editAnswer5Container.classList.add('d-none');
+        if (editOptionEToggleContainer) editOptionEToggleContainer.style.display = 'none';
+        
+        // Update labels to True/False
+        if (editOptionALabel) editOptionALabel.innerHTML = '<i class="fas fa-check text-success"></i> True (HTML Supported)';
+        if (editOptionBLabel) editOptionBLabel.innerHTML = '<i class="fas fa-times text-danger"></i> False (HTML Supported)';
+        
+        // Remove required attribute from hidden options
+        if (editAnswer3) editAnswer3.removeAttribute('required');
+        if (editAnswer4) editAnswer4.removeAttribute('required');
+        
+        // Update dropdown to show only True/False options
+        const editCorrectAnswerSelect = document.getElementById('edit_correct_answer');
+        if (editCorrectAnswerSelect) {
+            const currentValue = editCorrectAnswerSelect.value;
+            editCorrectAnswerSelect.innerHTML = `
+                <option value="">Select the correct answer</option>
+                <option value="1">True</option>
+                <option value="2">False</option>
+            `;
+            // Clear selection if it was C, D, or E
+            if (currentValue === '3' || currentValue === '4' || currentValue === '5') {
+                editCorrectAnswerSelect.value = '';
+            } else {
+                editCorrectAnswerSelect.value = currentValue;
+            }
+        }
+        
+        // Reset Option E toggle button if it was showing
+        const editToggleButton = document.getElementById('editToggleOptionE');
+        if (editToggleButton && !editAnswer5Container.classList.contains('d-none')) {
+            toggleEditOptionE(); // This will hide Option E and reset the button
+        }
+        
+    } else {
+        // Multiple Choice Mode: Show all options
+        
+        // Show Options C, D and the Add Option E button
+        if (editAnswer3Container) editAnswer3Container.style.display = 'block';
+        if (editAnswer4Container) editAnswer4Container.style.display = 'block';
+        if (editOptionEToggleContainer) editOptionEToggleContainer.style.display = 'block';
+        
+        // Restore labels to A, B, C, D
+        if (editOptionALabel) editOptionALabel.innerHTML = 'Option A (HTML Supported)';
+        if (editOptionBLabel) editOptionBLabel.innerHTML = 'Option B (HTML Supported)';
+        
+        // Add back required attribute
+        if (editAnswer3) editAnswer3.setAttribute('required', 'required');
+        if (editAnswer4) editAnswer4.setAttribute('required', 'required');
+        
+        // Restore full dropdown with all options
+        const editCorrectAnswerSelect = document.getElementById('edit_correct_answer');
+        if (editCorrectAnswerSelect) {
+            const currentValue = editCorrectAnswerSelect.value;
+            editCorrectAnswerSelect.innerHTML = `
+                <option value="">Select the correct answer</option>
+                <option value="1" id="editOptionADropdown">Option A</option>
+                <option value="2" id="editOptionBDropdown">Option B</option>
+                <option value="3" id="editOptionCDropdown">Option C</option>
+                <option value="4" id="editOptionDDropdown">Option D</option>
+                <option value="5" id="editOptionEDropdown" class="d-none">Option E</option>
+            `;
+            editCorrectAnswerSelect.value = currentValue;
+        }
+    }
+}
+
+// Edit Modal: Option E Toggle Functionality
+function toggleEditOptionE() {
+    // Check if we're in True/False mode - if so, don't allow Option E
+    const editTrueFalseIndicator = document.getElementById('editTrueFalseIndicator');
+    if (editTrueFalseIndicator && editTrueFalseIndicator.checked) {
+        console.log('Edit Option E toggle blocked - in True/False mode');
+        return;
+    }
+    
+    const editAnswer5Container = document.getElementById('editAnswer5Container');
+    const editToggleButton = document.getElementById('editToggleOptionE');
+    const editAnswer5Input = document.getElementById('edit_answer5');
+    
+    if (!editAnswer5Container || !editToggleButton || !editAnswer5Input) {
+        console.error('Required edit elements not found');
+        return;
+    }
+    
+    if (editAnswer5Container.classList.contains('d-none')) {
+        // Show Option E
+        editAnswer5Container.classList.remove('d-none');
+        editToggleButton.classList.remove('btn-outline-info');
+        editToggleButton.classList.add('btn-outline-danger');
+        editToggleButton.innerHTML = '<i class="fas fa-minus-circle"></i> <span id="editToggleText">Remove Option E</span>';
+        
+        // Add Option E to dropdown if we're in multiple choice mode
+        const editCorrectAnswerSelect = document.getElementById('edit_correct_answer');
+        if (editCorrectAnswerSelect) {
+            const currentValue = editCorrectAnswerSelect.value;
+            // Always rebuild dropdown to ensure Option E is included
+            editCorrectAnswerSelect.innerHTML = `
+                <option value="">Select the correct answer</option>
+                <option value="1" id="editOptionADropdown">Option A</option>
+                <option value="2" id="editOptionBDropdown">Option B</option>
+                <option value="3" id="editOptionCDropdown">Option C</option>
+                <option value="4" id="editOptionDDropdown">Option D</option>
+                <option value="5" id="editOptionEDropdown">Option E</option>
+            `;
+            editCorrectAnswerSelect.value = currentValue;
+        }
+    } else {
+        // Hide Option E
+        editAnswer5Container.classList.add('d-none');
+        editToggleButton.classList.remove('btn-outline-danger');
+        editToggleButton.classList.add('btn-outline-info');
+        editToggleButton.innerHTML = '<i class="fas fa-plus-circle"></i> <span id="editToggleText">Add Option E</span>';
+        
+        // Clear the Option E input and reset dropdown if Option E was selected
+        editAnswer5Input.value = '';
+        // Also clear the Quill editor content
+        if (typeof editAnswer5Quill !== 'undefined') {
+            editAnswer5Quill.setContents([]);
+        }
+        
+        // Remove Option E from dropdown and clear selection if it was Option E
+        const editCorrectAnswerSelect = document.getElementById('edit_correct_answer');
+        if (editCorrectAnswerSelect) {
+            const currentValue = editCorrectAnswerSelect.value;
+            editCorrectAnswerSelect.innerHTML = `
+                <option value="">Select the correct answer</option>
+                <option value="1" id="editOptionADropdown">Option A</option>
+                <option value="2" id="editOptionBDropdown">Option B</option>
+                <option value="3" id="editOptionCDropdown">Option C</option>
+                <option value="4" id="editOptionDDropdown">Option D</option>
+            `;
+            // Clear selection if it was Option E
+            if (currentValue === '5') {
+                editCorrectAnswerSelect.value = '';
+            } else {
+                editCorrectAnswerSelect.value = currentValue;
+            }
+        }
+    }
+}
+</script>
+{% endblock %} 
+
+<!-- Footer -->
+

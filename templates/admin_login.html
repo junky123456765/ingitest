@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Login - IngiTest_v1{% endblock %}
+
+{% block content %}
+<div class="container-fluid vh-100">
+    <div class="row h-100">
+        <!-- Left Section - Admin Branding (Expanded) -->
+        <div class="col-md-8 bg-dark text-white d-flex flex-column justify-content-center align-items-center p-5">
+            <div class="text-center">
+                <h1 class="display-3 fw-bold mb-3 text-warning">
+                    <i class="fas fa-graduation-cap me-3"></i>IngiTest_v1
+                </h1>
+                <h4 class="mb-4 text-warning">INGENIUM CoE Test Management System</h4>
+                <p class="lead mb-5">Administration Portal - Manage tests, users, and monitor system performance</p>
+                
+                <!-- Admin Features -->
+                <div class="mt-5">
+                    <h5 class="mb-4"><i class="fas fa-tools"></i> Admin Capabilities</h5>
+                    <div class="row text-start">
+                        <div class="col-md-6">
+                            <p class="mb-3"><i class="fas fa-cog text-warning me-2"></i> Test Management & Configuration</p>
+                            <p class="mb-3"><i class="fas fa-users text-warning me-2"></i> User Account Administration</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="mb-3"><i class="fas fa-chart-line text-warning me-2"></i> Performance Analytics & Reports</p>
+                            <p class="mb-3"><i class="fas fa-database text-warning me-2"></i> System Monitoring & Maintenance</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Security Features -->
+                <div class="mt-5">
+                    <h6 class="mb-3">Security Features</h6>
+                    <div class="row">
+                        <div class="col-4 text-center">
+                            <i class="fas fa-shield-alt fa-2x mb-2 text-warning"></i>
+                            <p class="small">Secure Access</p>
+                        </div>
+                        <div class="col-4 text-center">
+                            <i class="fas fa-lock fa-2x mb-2 text-warning"></i>
+                            <p class="small">Encrypted Data</p>
+                        </div>
+                        <div class="col-4 text-center">
+                            <i class="fas fa-eye fa-2x mb-2 text-warning"></i>
+                            <p class="small">Activity Monitoring</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Right Section - Admin Login -->
+        <div class="col-md-4 d-flex flex-column justify-content-center p-4">
+            <div class="login-form">
+                <h3 class="text-center mb-3"><i class="fas fa-user-shield"></i> Administrator Login</h3>
+                <p class="text-center text-muted mb-4">Access restricted to authorized personnel only</p>
+                
+                {% with messages = get_flashed_messages() %}
+                    {% if messages %}
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            {% for message in messages %}
+                                {{ message }}
+                            {% endfor %}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endif %}
+                {% endwith %}
+                
+                <form method="POST" action="{{ url_for('admin_verify') }}">
+                    <div class="mb-3">
+                        <label for="admin_username" class="form-label">Admin Username</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-user-shield"></i></span>
+                            <input type="text" class="form-control" id="admin_username" name="username" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="admin_password" class="form-label">Admin Password</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                            <input type="password" class="form-control" id="admin_password" name="password" required>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid mb-3">
+                        <button type="submit" class="btn btn-dark btn-lg">
+                            <i class="fas fa-sign-in-alt"></i> Secure Login
+                        </button>
+                    </div>
+                    
+                    <!-- Forgot Password Link -->
+                    <div class="text-center mb-3">
+                        <a href="{{ url_for('admin_forgot_password') }}" class="text-decoration-none">
+                            <i class="fas fa-key"></i> Forgot Password?
+                        </a>
+                    </div>
+                </form>
+                
+                <!-- User Login Button -->
+                <div class="text-center">
+                    <hr class="my-3">
+                    <p class="text-muted small mb-2">Not an administrator?</p>
+                    <a href="{{ url_for('user_login') }}" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-user"></i> User Login
+                    </a>
+                </div>
+                
+                <!-- User Guide Link -->
+                <div class="text-center mt-3">
+                    <a href="{{ url_for('user_guide') }}" class="btn btn-link btn-sm" target="_blank">
+                        <i class="fas fa-book"></i> User Guide
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Security Warning with proper spacing -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="alert alert-danger text-center">
+            <h6><i class="fas fa-shield-alt"></i> Admin Security Notice</h6>
+            <p class="mb-0">
+                <strong>⚠️ CRITICAL WARNING:</strong> Unauthorized access to admin accounts is a serious offense 
+                and may result in immediate disciplinary action, account suspension, legal consequences, 
+                and academic penalties. All admin login attempts are logged and monitored.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %} 
+
+<!-- Footer -->
+

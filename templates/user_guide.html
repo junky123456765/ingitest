@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IngiTest_v1 User Guide</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .user-guide-header { background: linear-gradient(135deg, #007bff, #0056b3); color: white; padding: 2rem 0; }
+        .content-section { margin: 2rem 0; }
+        .toc { background-color: #f8f9fa; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; }
+        .toc ul { list-style-type: none; padding-left: 0; }
+        .toc li { margin: 0.5rem 0; }
+        .toc a { text-decoration: none; color: #007bff; }
+        .toc a:hover { text-decoration: underline; }
+        h1, h2, h3, h4, h5, h6 { color: #343a40; margin-top: 2rem; margin-bottom: 1rem; }
+        h1 { border-bottom: 3px solid #007bff; padding-bottom: 0.5rem; }
+        h2 { border-bottom: 1px solid #dee2e6; padding-bottom: 0.3rem; }
+        .highlight { background-color: #fff3cd; padding: 0.5rem; border-left: 4px solid #ffc107; margin: 1rem 0; }
+        .code-block { background-color: #f8f9fa; padding: 1rem; border-radius: 4px; font-family: 'Courier New', monospace; margin: 1rem 0; }
+        img { max-width: 100%; height: auto; margin: 1rem 0; border: 1px solid #dee2e6; border-radius: 4px; }
+        .back-btn { position: fixed; top: 20px; right: 20px; z-index: 1000; }
+        @media print { .back-btn { display: none; } }
+    </style>
+</head>
+<body>
+    <!-- Fixed Close Button -->
+    <div class="back-btn">
+        <button onclick="closeTab()" class="btn btn-danger">
+            <i class="fas fa-times"></i> Close
+        </button>
+    </div>
+
+    <!-- Header -->
+    <div class="user-guide-header">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-12 text-center">
+                    <h1 class="display-4 mb-0"><i class="fas fa-book"></i> IngiTest_v1 User Guide</h1>
+                    <p class="lead mt-3">Complete guide to using the IngiTest_v1 platform</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container my-5">
+        <div class="row">
+            <div class="col-md-12">
+
+                <div class="toc">
+                    <h3><i class="fas fa-list"></i> Overall Table of Contents</h3>
+                    <ul>
+<li><a href="#table-of-contents">Table of Contents</a></li>
+<li><a href="#1.-introduction">1. Introduction</a></li>
+<li><a href="#2.-installation-and-setup">2. Installation and Setup</a></li>
+<li><a href="#3.-admin-guide">3. Admin Guide</a></li>
+  <li><a href="#3.1-admin-login">......3.1 Admin Login</a></li>
+  <li><a href="#3.2-dashboard-overview">......3.2 Dashboard Overview</a></li>
+  <li><a href="#3.3-user-management">......3.3 User Management</a></li>
+  <li><a href="#3.4-test-configuration">......3.4 Test Configuration</a></li>
+  <li><a href="#3.5-question-management">......3.5 Question Management</a></li>
+  <li><a href="#3.6-monitoring-and-results">......3.6 Monitoring and Results</a></li>
+<li><a href="#4.-user-guide">4. User Guide</a></li>
+  <li><a href="#4.1-user-login">......4.1 User Login</a></li>
+  <li><a href="#4.2-dashboard-overview">......4.2 Dashboard Overview</a></li>
+  <li><a href="#4.3-test-instructions">......4.3 Test Instructions</a></li>
+  <li><a href="#4.4-taking-the-test">......4.4 Taking the Test</a></li>
+  <li><a href="#4.5-viewing-results">......4.5 Viewing Results</a></li>
+<li><a href="#5.-troubleshooting">5. Troubleshooting</a></li>
+<li><a href="#6.-database-&-technical-notes">6. Database & Technical Notes</a></li>
+<li><a href="#7.-support">7. Support</a></li>
+
+                    </ul>
+                </div>
+<div class="content-section">
+<p><b>IngiTest_v1 User Guide</b></p>
+<p><b>Version: 1.0</b></p>
+<p>IngiTest_v1 is a professional web-based Test Management System built with Python Flask, Dynamic HTML and SQLite. This guide provides step-by-step instructions for administrators and users, some troubleshooting tips, and placeholders for screenshots.</p>
+<h1 id="table-of-contents">Table of Contents</h1>
+<p>1. Introduction</p>
+<p>2. Installation and Setup</p>
+<p>3. Admin Guide</p>
+<p>4. User Guide</p>
+<p>5. Troubleshooting</p>
+<p>6. Database & Technical Notes</p>
+<p>7. Support</p>
+<h1 id="1.-introduction">1. Introduction</h1>
+<p>IngiTest_v1 is a comprehensive Test Management System for administering and taking tests within an office network. It features secure login, test configuration, question management, real-time progress tracking, and detailed results analysis.</p>
+<h1 id="2.-installation-and-setup">2. Installation and Setup</h1>
+<p>1. To launch IngiTest_v1 website, in any browser: either Edge or Chrome, enter web address: http://10.239.169.196:5067</p>
+<p>2. Browser buttons may not work, please use buttons provided on website.</p>
+<p>3. Read instructions given on each page for easy navigation.</p>
+<p>- Please contact Senthil Anand(336733).</p>
+<h1 id="3.-admin-guide">3. Admin Guide</h1>
+<p>This section describes how to use the admin features of IngiTest_v1 app.</p>
+<h2 id="3.1-admin-login">3.1 Admin Login</h2>
+<p>Go to the main admin page (http://10.239.169.196:5067/admin_login):</p>
+<div class="text-center my-3">
+	<img src="/static/screenshots/admin_login.jpeg" alt="Admin Login Page Screenshot (Sample)" class="img-fluid border rounded shadow-sm" style="max-width: 800px;">
+	<br>
+	<small class="text-muted"><em>Figure: Admin Login Page (Sample)</em></small>
+</div>
+<p>Please contact Senthil Anand(336733).</p>
+<h2 id="3.2-dashboard-overview">3.2 Dashboard Overview</h2>
+<p>The dashboard displays test statistics, completed tests, and active sessions.</p>
+<div class="text-center my-3">
+	<img src="/static/screenshots/admin_dashboard.jpeg" alt="Admin Dashboard Page Screenshot (Sample - Masked)" class="img-fluid border rounded shadow-sm" style="max-width: 800px;">
+	<br>
+	<small class="text-muted"><em>Figure: Admin Dashboard Page (Sample - Masked)</em></small>
+</div>
+<h2 id="3.3-user-management">3.3 User Management</h2>
+<p>1. Navigate to "User Test Settings".</p>
+<p>2. Add new users by entering their usernames and passwords.</p>
+<p>3. Manage eligibility and reset passwords as needed.</p>
+<h2 id="3.4-test-configuration">3.4 Test Configuration</h2>
+<p>1. In "User Test Settings", set the test name, number of questions, duration, and common password.</p>
+<p>2. Save the settings.</p>
+<div class="text-center my-3">
+    <div class="alert alert-info">
+        <i class="fas fa-image"></i> <em>Screenshot: Admin User Test Settings (Sample)</em>
+    </div>
+</div>
+<h2 id="3.5-question-management">3.5 Question Management</h2>
+<p>1. Go to "Test Settings".</p>
+<div class="text-center my-3">
+    <div class="alert alert-info">
+        <i class="fas fa-image"></i> <em>Screenshot: Admin Test Settings (Sample)</em>
+    </div>
+</div>
+<p>2. Add questions with four options each and mark the correct answer.</p>
+<p>3. Edit or delete questions as needed.</p>
+<h2 id="3.6-monitoring-and-results">3.6 Monitoring and Results</h2>
+<p>1. Use the dashboard to monitor active sessions and view results.</p>
+<p>2. Click on a user to see detailed performance and pass/fail status.</p>
+<div class="text-center my-3">
+    <div class="alert alert-info">
+        <i class="fas fa-image"></i> <em>Screenshot: Admin Results Dashboard (Sample)</em>
+    </div>
+</div>
+<h1 id="4.-user-guide">4. User Guide</h1>
+<p>This section describes the test-taking process for users.</p>
+<h2 id="4.1-user-login">4.1 User Login</h2>
+<p>1. Go to the main page (http://10.239.169.196:5067/user_login).</p>
+<div class="text-center my-3">
+    <img src="/static/screenshots/user_login.jpeg" alt="User Login Page Screenshot (Sample)" class="img-fluid border rounded shadow-sm" style="max-width: 800px;">
+    <br>
+    <small class="text-muted"><em>Figure: User Login Page (Sample)</em></small>
+</div>
+<p>2. Enter your username and the password provided by the admin.</p>
+<h2 id="4.2-dashboard-overview">4.2 Dashboard Overview</h2>
+<p>The dashboard displays test statistics, completed tests, active tests, test wise performance.</p>
+<div class="text-center my-3">
+    <img src="/static/screenshots/user_dashboard.jpeg" alt="User Dashboard Screenshot (Sample)" class="img-fluid border rounded shadow-sm" style="max-width: 800px;">
+    <br>
+    <small class="text-muted"><em>Figure: User Dashboard Page (Sample)</em></small>
+</div>
+<h2 id="4.3-test-instructions">4.3 Test Instructions</h2>
+<p>1. Review the test details (number of questions, time limit, etc.).</p>
+<p>2. Understand navigation and page features before starting.</p>
+<div class="text-center my-3">
+	<img src="/static/screenshots/user_test_access_verification.jpeg" alt="User Test Access Verification Page Screenshot (Sample)" class="img-fluid border rounded shadow-sm" style="max-width: 800px;">
+	<br>
+	<small class="text-muted"><em>Figure: User Test Access Verification Page (Sample)</em></small>
+</div>
+<div class="text-center my-3">
+	<img src="/static/screenshots/user_start_test_page.jpeg" alt="User Start Test Page Screenshot (Sample)" class="img-fluid border rounded shadow-sm" style="max-width: 800px;">
+	<br>
+	<small class="text-muted"><em>Figure: User Start Test Page (Sample)</em></small>
+</div>
+<h2 id="4.4-taking-the-test">4.4 Taking the Test</h2>
+<p>1. Click "Start Test Now" button to begin. The timer will start immediately.</p>
+<p>2. Answer questions by selecting the appropriate option by clicking on it.</p>
+<p>3. Use "Save Progress" button to save your progress and use "BookMark" buttons to flag questions for later review.</p>
+<p>4. Navigate using Previous/Next buttons or jump to a specific page.</p>
+<p>5. Submit the test when finished.</p>
+<div class="text-center my-3">
+	<img src="/static/screenshots/user_test_page.jpeg" alt="User Test Page Screenshot (Sample - Masked)" class="img-fluid border rounded shadow-sm" style="max-width: 800px;">
+	<br>
+	<small class="text-muted"><em>Figure: User Test Page (Sample - Masked)</em></small>
+</div>
+<h2 id="4.5-viewing-results">4.5 Viewing Results</h2>
+<p>1. After submitting, view your score and Pass/Fail status.</p>
+<div class="text-center my-3">
+	<img src="/static/screenshots/user_test_results.jpeg" alt="Test Results Page Screenshot (Sample)" class="img-fluid border rounded shadow-sm" style="max-width: 800px;">
+	<br>
+	<small class="text-muted"><em>Figure: Test Results Page (Sample)</em></small>
+</div>
+<p>2. Review your performance breakdown.</p>
+<div class="text-center my-3">
+	<img src="/static/screenshots/user_test_results_qbq.jpeg" alt="User Test Results - Question-by-Question-Review Page Screenshot (Sample - Masked)" class="img-fluid border rounded shadow-sm" style="max-width: 800px;">
+	<br>
+	<small class="text-muted"><em>Figure: User Test Results - Question-by-Question-Review Page (Sample - Masked)</em></small>
+</div>
+
+<br> </br>
+
+<h1 id="5.-troubleshooting">5. Troubleshooting</h1>
+<p><b>Common Issues and Solutions:</b></p>
+<p>- Database errors: Delete database schema and restart the app to reset.</p>
+<p>- Timer issues: Ensure JavaScript is enabled and browser is compatible.</p>
+<p>- Network access: Check firewall and IP configuration.</p>
+<p>- Questions not displaying: Ensure questions are added via admin panel.</p>
+<p>- For database or test summary issues, use the scripts in the tests/ folder as described in tests/README.md.</p>
+<p>- Refer to app.py and tests/README.md for advanced troubleshooting, migration, and verification scripts.</p>
+<p>- Clear Browser caches, if needed.</p>
+<p>- If still facing issues, please reach out to Senthil Anand(336733).</p>
+
+<h1 id="6.-database-&-technical-notes">6. Database & Technical Notes</h1>
+<p><b>Key SQLITE tables:</b></p>
+<p>- TestSettings: Test configuration</p>
+<p>- Users: User management</p>
+<p>- UserAnswers: Question bank</p>
+<p>- UsersTestResults: Test results</p>
+<p>- UserTestSessions: Active test tracking</p>
+<p>- UserResponses: User answer storage</p>
+<p>- Database Schema is defined accordingly.</p>
+
+<h1 id="7.-support">7. Support</h1>
+<p><b>For Technical support or New feature requests/Existing feature modification requests:</b></p>
+<p>1. New user registration.</p>
+<p>2. Login issues.</p>
+<p>3. New Tests configuration.</p>
+<p>4. Test Question Bank configuration.</p>
+<p>5. Test enablement/disablement.</p>
+<p>6. Please reach out to Senthil Anand(336733).</p>
+
+<br> </br>
+
+<p><b>IngiTest_v1 - Professional Test Management Made Simple.</b></p>
+<p><b>All Copyrights Reserved. @2025 COGNIZANT.</b></p>
+</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    
+    <script>
+        function closeTab() {
+            // Try to close the current tab/window
+            try {
+                window.close();
+                
+                // If window.close() doesn't work (some browsers restrict it),
+                // provide fallback options
+                setTimeout(function() {
+                    // Check if the window is still open after 100ms
+                    if (!window.closed) {
+                        // Alternative 1: Try to go back in history
+                        if (window.history.length > 1) {
+                            window.history.back();
+                        } else {
+                            // Alternative 2: Show a message to manually close
+                            alert('Please close this tab manually (Ctrl+W or Cmd+W)');
+                        }
+                    }
+                }, 100);
+                
+            } catch (error) {
+                // If all else fails, provide instructions
+                alert('Please close this tab manually (Ctrl+W or Cmd+W)');
+            }
+        }
+    </script>
+
+</body>
+</html>

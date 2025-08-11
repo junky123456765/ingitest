@@ -1,0 +1,257 @@
+{% extends "base.html" %}
+
+{% block title %}Test Results - IngiTest_v1{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <!-- Result Header -->
+        <div class="card mb-4">
+            <div class="card-header {% if pass_fail == 'Pass' %}bg-success{% else %}bg-danger{% endif %} text-white text-center">
+                <h2>
+                    {% if pass_fail == 'Pass' %}
+                        <i class="fas fa-trophy"></i> Congratulations!
+                    {% else %}
+                        <i class="fas fa-times-circle"></i> Test Completed
+                    {% endif %}
+                </h2>
+                <p class="mb-0">{{ test_name }} - Results</p>
+            </div>
+            <div class="card-body text-center">
+                <div class="row">
+                    <div class="col-md-2">
+                        <div class="card {% if pass_fail == 'Pass' %}bg-success{% else %}bg-danger{% endif %} text-white">
+                            <div class="card-body py-2">
+                                <h5 class="text-white mb-0">{{ pass_fail }}</h5>
+                                <small class="mb-0">Final Result</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body py-2">
+                                <h5 class="text-white mb-0">{{ "%.2f"|format(score) }}%</h5>
+                                <small class="mb-0">Overall Score</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="card bg-success text-white">
+                            <div class="card-body py-2">
+                                <h5 class="text-white mb-0">{{ correct_answers }}</h5>
+                                <small class="mb-0">Correct</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="card bg-danger text-white">
+                            <div class="card-body py-2">
+                                <h5 class="text-white mb-0">{{ incorrect_answers }}</h5>
+                                <small class="mb-0">Incorrect</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="card bg-secondary text-white">
+                            <div class="card-body py-2">
+                                <h5 class="text-white mb-0">{{ total_questions }}</h5>
+                                <small class="mb-0">Total</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="card bg-info text-white">
+                            <div class="card-body py-2">
+                                <h5 class="text-white mb-0">{{ "%.1f"|format(time_consumed) }}</h5>
+                                <small class="mb-0">Minutes</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Score Breakdown -->
+        <div class="card mb-4">
+            <div class="card-header bg-info text-white">
+                <h4><i class="fas fa-chart-pie"></i> Score Breakdown</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5>Performance Summary</h5>
+                        <ul class="list-unstyled">
+                            <li>
+                                <i class="fas fa-check text-success"></i> 
+                                Correct Answers: <strong>{{ correct_answers }}</strong> / {{ total_questions }}
+                            </li>
+                            <li>
+                                <i class="fas fa-times text-danger"></i> 
+                                Incorrect Answers: <strong>{{ incorrect_answers }}</strong> / {{ total_questions }}
+                            </li>
+                            <li>
+                                <i class="fas fa-question text-warning"></i> 
+                                Unanswered: <strong>{{ unanswered_questions }}</strong> / {{ total_questions }}
+                            </li>
+                            <li>
+                                <i class="fas fa-list-ol text-info"></i> 
+                                Answered: <strong>{{ answered_questions }}</strong> / {{ total_questions }}
+                            </li>
+                            <li>
+                                <i class="fas fa-percentage text-primary"></i> 
+                                Accuracy: <strong>{{ "%.2f"|format(score) }}%</strong>
+                            </li>
+                            <li>
+                                <i class="fas fa-clock text-secondary"></i> 
+                                Time Consumed: <strong>{{ "%.1f"|format(time_consumed) }} minutes</strong>
+                            </li>
+                            <li>
+                                <i class="fas fa-graduation-cap {% if pass_fail == 'Pass' %}text-success{% else %}text-danger{% endif %}"></i> 
+                                Result: <strong>{{ pass_fail }}</strong> ({{ passing_grade }}% required to pass)
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h5>Progress Visualization</h5>
+                        <div class="mb-3">
+                            <label class="form-label">Your Score: {{ "%.2f"|format(score) }}%</label>
+                            <div class="progress" style="height: 25px;">
+                                <div class="progress-bar {% if pass_fail == 'Pass' %}bg-success{% else %}bg-danger{% endif %}" 
+                                     role="progressbar" 
+                                     style="width: {{ "%.2f"|format(score) }}%">
+                                    {{ "%.2f"|format(score) }}%
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Passing Grade: {{ passing_grade }}%</label>
+                            <div class="progress" style="height: 15px;">
+                                <div class="progress-bar bg-warning" 
+                                     role="progressbar" 
+                                     style="width: {{ passing_grade }}%">
+                                    {{ passing_grade }}%
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Answer Distribution Chart -->
+                        <div class="mb-3">
+                            <label class="form-label">Answer Distribution</label>
+                            <div class="progress" style="height: 20px;">
+                                {% set correct_percent = (correct_answers / total_questions * 100) if total_questions > 0 else 0 %}
+                                {% set incorrect_percent = (incorrect_answers / total_questions * 100) if total_questions > 0 else 0 %}
+                                {% set unanswered_percent = (unanswered_questions / total_questions * 100) if total_questions > 0 else 0 %}
+                                
+                                <div class="progress-bar bg-success" 
+                                     style="width: {{ correct_percent }}%" 
+                                     title="Correct: {{ correct_answers }}">
+                                </div>
+                                <div class="progress-bar bg-danger" 
+                                     style="width: {{ incorrect_percent }}%" 
+                                     title="Incorrect: {{ incorrect_answers }}">
+                                </div>
+                                <div class="progress-bar bg-warning" 
+                                     style="width: {{ unanswered_percent }}%" 
+                                     title="Unanswered: {{ unanswered_questions }}">
+                                </div>
+                            </div>
+                            <small class="text-muted">
+                                <span class="badge bg-success">{{ correct_answers }} Correct</span>
+                                <span class="badge bg-danger">{{ incorrect_answers }} Incorrect</span>
+                                <span class="badge bg-warning">{{ unanswered_questions }} Unanswered</span>
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Result Message -->
+        <div class="card mb-4">
+            <div class="card-header {% if pass_fail == 'Pass' %}bg-success{% else %}bg-warning{% endif %} text-white">
+                <h4>
+                    {% if pass_fail == 'Pass' %}
+                        <i class="fas fa-trophy"></i> Well Done!
+                    {% else %}
+                        <i class="fas fa-info-circle"></i> Keep Learning!
+                    {% endif %}
+                </h4>
+            </div>
+            <div class="card-body">
+                {% if pass_fail == 'Pass' %}
+                <div class="alert alert-success">
+                    <h5><i class="fas fa-check-circle"></i> Congratulations!</h5>
+                    <p>You have successfully passed the test with a score of {{ "%.2f"|format(score) }}%. 
+                       Your performance demonstrates a good understanding of the subject matter.</p>
+                    <p><strong>What's next?</strong></p>
+                    <ul>
+                        <li>Your results have been recorded in the system</li>
+                        <li>You may receive further instructions from your administrator</li>
+                        <li>Keep up the excellent work!</li>
+                    </ul>
+                </div>
+                {% else %}
+                <div class="alert alert-warning">
+                    <h5><i class="fas fa-exclamation-triangle"></i> Room for Improvement</h5>
+                    <p>You scored {{ "%.2f"|format(score) }}%, which is below the passing grade of 70%. 
+                       Don't be discouraged - this is an opportunity to learn and improve.</p>
+                    <p><strong>Recommendations:</strong></p>
+                    <ul>
+                        <li>Review the subject material thoroughly</li>
+                        <li>Contact your administrator for additional resources</li>
+                        <li>Ask about retaking the test if allowed</li>
+                        <li>Focus on areas where you struggled</li>
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="row mt-5">
+            <div class="col-md-4 text-center">
+                <a href="{{ url_for('user_dashboard') }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-tachometer-alt"></i> Back to Dashboard
+                </a>
+            </div>
+            <div class="col-md-4 text-center">
+                <a href="{{ url_for('view_test_result', result_id=result_id) }}" class="btn btn-success btn-lg">
+                    <i class="fas fa-eye"></i> Review Questions & Answers
+                </a>
+            </div>
+            <div class="col-md-4 text-center">
+                <a href="{{ url_for('user_login') }}" class="btn btn-outline-secondary btn-lg">
+                    <i class="fas fa-home"></i> Home
+                </a>
+            </div>
+        </div>
+
+        <!-- Timestamp -->
+        <div class="text-center mt-4">
+            <small class="text-muted">
+                <i class="fas fa-clock"></i> Test completed successfully
+            </small>
+        </div>
+    </div>
+</div>
+
+<!-- Celebration Animation for Pass -->
+{% if pass_fail == 'Pass' %}
+<style>
+@keyframes celebration {
+    0% { transform: scale(1) rotate(0deg); }
+    25% { transform: scale(1.1) rotate(5deg); }
+    50% { transform: scale(1) rotate(0deg); }
+    75% { transform: scale(1.1) rotate(-5deg); }
+    100% { transform: scale(1) rotate(0deg); }
+}
+
+.fa-trophy {
+    animation: celebration 2s ease-in-out infinite;
+}
+</style>
+{% endif %}
+{% endblock %} 
+
+<!-- Footer -->
+

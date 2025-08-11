@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block title %}Test Instructions - IngiTest_v1{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white text-center">
+                <h2><i class="fas fa-clipboard-list"></i> {{ test_settings.TestName }}</h2>
+                <p class="mb-0">Read the instructions carefully before starting</p>
+            </div>
+            <div class="card-body">
+                <!-- Test Details -->
+                <div class="row mb-4">
+                    <div class="col-md-4 text-center">
+                        <div class="card bg-info text-white">
+                            <div class="card-body">
+                                <h3>{{ test_settings.NumberQuestionsForTest or test_settings.NumberTestQuestions }}</h3>
+                                <p class="mb-0"><i class="fas fa-question-circle"></i> Total Questions</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <div class="card bg-warning text-white">
+                            <div class="card-body">
+                                <h3>{{ test_settings.TimeDuration }}</h3>
+                                <p class="mb-0"><i class="fas fa-clock"></i> Minutes</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <div class="card bg-success text-white">
+                            <div class="card-body">
+                                <h3>10</h3>
+                                <p class="mb-0"><i class="fas fa-file"></i> Questions per Page</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Instructions -->
+                <div class="card mb-4">
+                    <div class="card-header bg-secondary text-white">
+                        <h4><i class="fas fa-exclamation-circle"></i> Important Instructions</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5><i class="fas fa-play-circle text-primary"></i> During the Test:</h5>
+                                <ul>
+                                    <li>You can navigate between questions using Next/Previous buttons</li>
+                                    <li>Click on any answer option to select it</li>
+                                    <li>Use the "Save" button to save your current answers</li>
+                                    <li>Use the "Mark" button to flag questions for review</li>
+                                    <li>A timer will show your remaining time</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h5><i class="fas fa-stopwatch text-warning"></i> Time Management:</h5>
+                                <ul>
+                                    <li>The test will automatically submit when time expires</li>
+                                    <li>You can submit early using the Submit button on the last page</li>
+                                    <li>Your progress is automatically saved</li>
+                                    <li>Do not refresh or close the browser window</li>
+                                    <li>Take breaks only if absolutely necessary</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Navigation Info -->
+                <div class="card mb-4">
+                    <div class="card-header bg-info text-white">
+                        <h4><i class="fas fa-map-marked-alt"></i> Navigation Guide</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6><i class="fas fa-arrow-left text-secondary"></i> Previous Button</h6>
+                                <p>Go back to previous questions</p>
+                                
+                                <h6><i class="fas fa-save text-primary"></i> Save Button</h6>
+                                <p>Save your current answers</p>
+                            </div>
+                            <div class="col-md-6">
+                                <h6><i class="fas fa-arrow-right text-primary"></i> Next Button</h6>
+                                <p>Move to next questions</p>
+                                
+                                <h6><i class="fas fa-bookmark text-warning"></i> Mark Button</h6>
+                                <p>Flag questions for later review</p>
+                            </div>
+                        </div>
+                        <div class="text-center mt-3">
+                            <h6><i class="fas fa-paper-plane text-success"></i> Submit Button</h6>
+                            <p>Available on the last page to submit your test</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Start Test -->
+                <div class="text-center">
+                    <div class="alert alert-warning">
+                        <h5><i class="fas fa-exclamation-triangle"></i> Ready to Start?</h5>
+                        <p class="mb-0">Once you click "Start Test", the timer will begin. Make sure you're ready!</p>
+                    </div>
+                    {% if test_id %}
+                    <a href="{{ url_for('start_test', test_id=test_id) }}" class="btn btn-success btn-lg">
+                        <i class="fas fa-play"></i> Start Test Now
+                    </a>
+                    {% else %}
+                    <a href="{{ url_for('user_dashboard') }}" class="btn btn-secondary btn-lg">
+                        <i class="fas fa-arrow-left"></i> Back to Dashboard
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card .card-body h3 {
+    font-size: 2.5rem;
+    font-weight: bold;
+}
+</style>
+{% endblock %} 
+
+<!-- Footer -->
+

@@ -1,0 +1,37 @@
+
+# IngiTest - Quick Access URLs
+===============================
+
+## User URLs:
+- User Login: http://localhost:5000/
+- User Dashboard: http://localhost:5000/user_dashboard  
+- User Forgot Password: http://localhost:5000/forgot-password
+
+## Admin URLs:
+- Admin Login: http://localhost:5000/admin
+- Admin Dashboard: http://localhost:5000/admin/dashboard
+- Admin Transactions: http://localhost:5000/admin/transactions
+- Admin User Settings: http://localhost:5000/admin/user-settings
+- Admin Test Settings: http://localhost:5000/admin/test-settings
+- Admin Forgot Password: http://localhost:5000/admin/forgot-password
+
+## Test URLs:
+- Test Access: http://localhost:5000/test_access_verification
+
+## Direct Access Instructions:
+1. Start the app: python app.py
+2. Open browser and go to any URL above
+3. Clear browser cache if pages don't load correctly (Ctrl+Shift+Delete)
+4. Use hard refresh if needed (Ctrl+Shift+R)
+
+## Default Login Credentials:
+- Admin: username=admin, password=admin123
+- Demo User: username=demo, password=demo123
+
+## Troubleshooting:
+- If "Forgot Password" links are missing: Clear browser cache
+- If "Transactions" button is missing: Hard refresh admin dashboard
+- If DOB/Employee ID fields missing: Check database was updated
+- If routes not working: Restart the Flask app
+
+Created: 2025-07-26 10:06:10.189244

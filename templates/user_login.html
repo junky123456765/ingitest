@@ -2,13 +2,14 @@
 
 {% block title %}Login - IngiTest_v1{% endblock %}
 
+{% block body_class %}login-page{% endblock %}
 {% block content %}
 <div class="container-fluid vh-100">
     <div class="row h-100">
         <!-- Left Section - Branding (Expanded) -->
-        <div class="col-md-8 bg-primary text-white d-flex flex-column justify-content-center align-items-center p-5">
+        <div class="col-12 col-lg-8 bg-primary text-white d-flex flex-column justify-content-center align-items-center p-4 p-md-5 login-left">
             <div class="text-center">
-                <h1 class="display-3 fw-bold mb-3">
+                <h1 class="display-4 fw-bold mb-3">
                     <i class="fas fa-graduation-cap me-3"></i>IngiTest_v1
                 </h1>
                 <h4 class="mb-4">INGENIUM CoE Test Management System</h4>
@@ -51,7 +52,7 @@
         </div>
         
         <!-- Right Section - User Login -->
-        <div class="col-md-4 d-flex flex-column justify-content-center p-5">
+        <div class="col-12 col-lg-4 d-flex flex-column justify-content-center p-4 p-md-5 login-right">
             <div class="login-form">
                 <h3 class="text-center mb-4"><i class="fas fa-user"></i> User Login</h3>
                 

@@ -165,17 +165,29 @@
             width: 100%;
         }
         
-        .login-form .input-group-text {
-            padding: 12px 15px;
-            border: 2px solid #e9ecef;
-            border-right: 0;
-            background-color: #f8f9fa;
-        }
-        
+        .login-form .input-group .input-group-text,
         .login-form .input-group .form-control {
-            padding: 12px 15px;
-            border: 2px solid #e9ecef;
+            border: 1px solid #ced4da;
+        }
+        .login-form .input-group .input-group-text {
+            background-color: #f8f9fa;
+            border-right: 0;
+            border-top-left-radius: 10px;
+            border-bottom-left-radius: 10px;
+            padding: .625rem .875rem;
+            display: flex;
+            align-items: center;
+        }
+        .login-form .input-group .form-control {
             border-left: 0;
+            border-top-right-radius: 10px;
+            border-bottom-right-radius: 10px;
+            padding: .625rem .875rem;
+        }
+        .login-form .btn {
+            width: 100%;
+            border-radius: 10px;
+            padding: .75rem 1rem;
         }
         
         @media (max-width: 576px) {
